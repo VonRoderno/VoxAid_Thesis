@@ -1,0 +1,188 @@
+{
+  "id": "bandaging",
+  "name": "Wound Bandaging",
+  "description": "Basic wound care and bandaging technique",
+  "category": "bleeding",
+  "estimated_duration_minutes": 5,
+  "warning": "For severe bleeding, call 911 immediately. This is for minor to moderate wounds.",
+  "emergency_notes": [
+    "Apply direct pressure to control bleeding",
+    "Elevate the wound above heart level if possible",
+    "If bleeding doesn't stop after 10 minutes of pressure, call 911"
+  ],
+  "steps": [
+    {
+      "step_number": 1,
+      "title": "Assess the Wound",
+      "description": "Evaluate severity and type of wound",
+      "detailed_instructions": [
+        "Check how deep the wound is",
+        "Assess amount of bleeding",
+        "Look for embedded objects (do NOT remove)",
+        "Determine if 911 is needed"
+      ],
+      "voice_prompt": "Assess the wound. Check the depth and amount of bleeding. If bleeding is severe or pulsating, call nine one one immediately.",
+      "animation_resource": "bandage_assess.json",
+      "duration_seconds": 10,
+      "critical_warning": "For arterial bleeding (pulsating blood), call 911 immediately",
+      "voice_commands": [
+        {
+          "command": "next",
+          "alternatives": ["minor wound", "continue"],
+          "action": "next_step"
+        },
+        {
+          "command": "severe",
+          "alternatives": ["heavy bleeding", "emergency"],
+          "action": "call_911_prompt"
+        }
+      ]
+    },
+    {
+      "step_number": 2,
+      "title": "Wash Hands",
+      "description": "Clean your hands thoroughly",
+      "detailed_instructions": [
+        "Wash hands with soap and water for 20 seconds",
+        "If no water available, use hand sanitizer",
+        "Put on gloves if available",
+        "Keep the area as clean as possible"
+      ],
+      "voice_prompt": "Wash your hands thoroughly with soap and water. Use gloves if available.",
+      "animation_resource": "wash_hands.json",
+      "duration_seconds": 25,
+      "voice_commands": [
+        {
+          "command": "next",
+          "alternatives": ["done", "hands clean"],
+          "action": "next_step"
+        }
+      ]
+    },
+    {
+      "step_number": 3,
+      "title": "Stop the Bleeding",
+      "description": "Apply direct pressure with clean cloth",
+      "detailed_instructions": [
+        "Use a clean cloth or gauze",
+        "Apply firm, direct pressure on wound",
+        "Hold pressure for at least 5 minutes",
+        "Do not peek to check if bleeding stopped",
+        "Elevate wound above heart level if possible"
+      ],
+      "voice_prompt": "Apply direct pressure to the wound with a clean cloth. Hold firm pressure for at least five minutes without releasing.",
+      "animation_resource": "bandage_pressure.json",
+      "duration_seconds": 300,
+      "critical_warning": "Do not remove cloth if it becomes soaked - add more on top",
+      "voice_commands": [
+        {
+          "command": "next",
+          "alternatives": ["bleeding stopped", "done"],
+          "action": "next_step"
+        },
+        {
+          "command": "still bleeding",
+          "alternatives": ["not stopped", "more pressure"],
+          "action": "repeat_step"
+        }
+      ]
+    },
+    {
+      "step_number": 4,
+      "title": "Clean the Wound",
+      "description": "Rinse with clean water",
+      "detailed_instructions": [
+        "Rinse wound gently with clean water",
+        "Remove any visible dirt or debris",
+        "Do NOT use hydrogen peroxide or iodine on deep wounds",
+        "Pat dry with clean cloth",
+        "Do not scrub the wound"
+      ],
+      "voice_prompt": "Gently rinse the wound with clean water to remove dirt. Pat dry with a clean cloth.",
+      "animation_resource": "bandage_clean.json",
+      "duration_seconds": 30,
+      "voice_commands": [
+        {
+          "command": "next",
+          "alternatives": ["cleaned", "done"],
+          "action": "next_step"
+        }
+      ]
+    },
+    {
+      "step_number": 5,
+      "title": "Apply Antibiotic Ointment",
+      "description": "Apply thin layer of antibiotic ointment",
+      "detailed_instructions": [
+        "Apply a thin layer of antibiotic ointment",
+        "Use products like Neosporin if available",
+        "Spread evenly over wound",
+        "Skip if person is allergic"
+      ],
+      "voice_prompt": "Apply a thin layer of antibiotic ointment to the wound if available.",
+      "animation_resource": "bandage_ointment.json",
+      "duration_seconds": 15,
+      "voice_commands": [
+        {
+          "command": "next",
+          "alternatives": ["done", "applied"],
+          "action": "next_step"
+        },
+        {
+          "command": "skip",
+          "alternatives": ["no ointment", "allergic"],
+          "action": "next_step"
+        }
+      ]
+    },
+    {
+      "step_number": 6,
+      "title": "Cover with Bandage",
+      "description": "Apply sterile bandage or dressing",
+      "detailed_instructions": [
+        "Use sterile gauze pad for larger wounds",
+        "Use adhesive bandage for small cuts",
+        "Cover entire wound",
+        "Secure with medical tape if needed",
+        "Not too tight - should allow circulation"
+      ],
+      "voice_prompt": "Cover the wound with a sterile bandage. Make sure it covers the entire wound but is not too tight.",
+      "animation_resource": "bandage_apply.json",
+      "duration_seconds": 30,
+      "voice_commands": [
+        {
+          "command": "next",
+          "alternatives": ["done", "bandaged"],
+          "action": "next_step"
+        },
+        {
+          "command": "repeat",
+          "alternatives": ["show again"],
+          "action": "repeat_step"
+        }
+      ]
+    },
+    {
+      "step_number": 7,
+      "title": "Monitor and Care",
+      "description": "Watch for signs of infection",
+      "detailed_instructions": [
+        "Change bandage daily or when wet/dirty",
+        "Watch for signs of infection: redness, swelling, pus, fever",
+        "Keep wound clean and dry",
+        "Seek medical attention if wound doesn't heal",
+        "See doctor if signs of infection appear"
+      ],
+      "voice_prompt": "Change the bandage daily. Watch for signs of infection like increased redness, swelling, or pus. Seek medical attention if these occur.",
+      "animation_resource": "bandage_monitor.json",
+      "duration_seconds": 20,
+      "voice_commands": [
+        {
+          "command": "done",
+          "alternatives": ["finished", "complete"],
+          "action": "protocol_complete"
+        }
+      ]
+    }
+  ]
+}

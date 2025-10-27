@@ -1,0 +1,93 @@
+{
+  "id": "bandaging_circular",
+  "name": "Circular Bandaging",
+  "description": "Roller bandage technique for limbs",
+  "category": "bleeding",
+  "estimated_duration_minutes": 5,
+  "warning": "For bleeding wounds on limbs. Apply direct pressure first.",
+  "emergency_notes": [
+    "Do not wrap too tightly",
+    "Check circulation after bandaging"
+  ],
+  "steps": [
+    {
+      "step_number": 1,
+      "title": "Control Bleeding First",
+      "description": "Apply direct pressure to wound",
+      "detailed_instructions": [
+        "Use clean cloth or gauze",
+        "Apply firm pressure for 5 minutes",
+        "Elevate if possible"
+      ],
+      "voice_prompt": "First, apply direct pressure to the wound for at least 5 minutes.",
+      "duration_seconds": 300,
+      "critical_warning": "Must stop bleeding before bandaging"
+    },
+    {
+      "step_number": 2,
+      "title": "Clean Wound",
+      "description": "Rinse with clean water",
+      "detailed_instructions": [
+        "Rinse gently with clean water",
+        "Remove visible dirt",
+        "Pat dry with clean cloth"
+      ],
+      "voice_prompt": "Gently rinse the wound with clean water and pat dry.",
+      "duration_seconds": 30
+    },
+    {
+      "step_number": 3,
+      "title": "Position Roller Bandage",
+      "description": "Start below wound, wrap upward",
+      "detailed_instructions": [
+        "Hold bandage roll in dominant hand",
+        "Place end below wound",
+        "Make 2 anchor wraps"
+      ],
+      "voice_prompt": "Position the bandage below the wound and make two anchor wraps.",
+      "animation_resource": "bandage_circular_start.json",
+      "duration_seconds": 15
+    },
+    {
+      "step_number": 4,
+      "title": "Spiral Wrap",
+      "description": "Wrap upward in overlapping spirals",
+      "detailed_instructions": [
+        "Wrap at 45-degree angle upward",
+        "Each wrap overlaps previous by half",
+        "Cover entire wound area",
+        "Maintain even pressure"
+      ],
+      "voice_prompt": "Wrap upward in spirals, overlapping each wrap by half. Keep even pressure.",
+      "animation_resource": "bandage_circular_wrap.json",
+      "duration_seconds": 45
+    },
+    {
+      "step_number": 5,
+      "title": "Secure Bandage",
+      "description": "Finish with anchor wraps and secure",
+      "detailed_instructions": [
+        "Make 2 final anchor wraps",
+        "Cut or tear bandage",
+        "Secure with tape or clips",
+        "Do not use pins on circular bandages"
+      ],
+      "voice_prompt": "Make two final wraps and secure with tape or clips.",
+      "animation_resource": "bandage_circular_secure.json",
+      "duration_seconds": 20
+    },
+    {
+      "step_number": 6,
+      "title": "Check Circulation",
+      "description": "Ensure bandage not too tight",
+      "detailed_instructions": [
+        "Check color of fingers/toes",
+        "Check warmth and sensation",
+        "Loosen if numbness or cold",
+        "Seek medical attention"
+      ],
+      "voice_prompt": "Check circulation beyond the bandage. Loosen if too tight and seek medical care.",
+      "duration_seconds": 20
+    }
+  ]
+}

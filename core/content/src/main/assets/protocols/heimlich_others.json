@@ -1,0 +1,87 @@
+{
+  "id": "heimlich_others",
+  "name": "Heimlich Maneuver for Others",
+  "description": "Emergency procedure for choking victim",
+  "category": "airway",
+  "estimated_duration_minutes": 1,
+  "warning": "Only use if person cannot cough, speak, or breathe.",
+  "emergency_notes": [
+    "If person becomes unconscious, start CPR",
+    "Call 911 if choking persists"
+  ],
+  "steps": [
+    {
+      "voice_prompt": "Grasp your fist with your other hand. Give five quick, upward thrusts into the abdomen.",
+      "animation_resource": "heimlich_thrust.json",
+      "duration_seconds": 10,
+      "critical_warning": "Use forceful upward motion"
+    },
+    {
+      "step_number": 1,
+      "title": "Assess the Situation",
+      "description": "Confirm person is choking",
+      "detailed_instructions": [
+        "Ask if they're choking",
+        "Look for inability to speak or cough",
+        "Check if clutching throat"
+      ],
+      "voice_prompt": "Ask if the person is choking. Look for signs like inability to speak or cough.",
+      "animation_resource": "heimlich_assess.json",
+      "duration_seconds": 5,
+      "critical_warning": "Only proceed if cannot cough or speak"
+    },
+    {
+      "step_number": 2,
+      "title": "Position Yourself",
+      "description": "Stand behind the choking person",
+      "detailed_instructions": [
+        "Stand directly behind person",
+        "Wrap arms around their waist",
+        "Ensure person is upright"
+      ],
+      "voice_prompt": "Stand behind the person and wrap your arms around their waist.",
+      "animation_resource": "heimlich_position.json",
+      "duration_seconds": 5
+    },
+    {
+      "step_number": 3,
+      "title": "Make a Fist",
+      "description": "Position fist above navel",
+      "detailed_instructions": [
+        "Make fist with one hand",
+        "Place thumb side against abdomen",
+        "Position above navel, below ribs"
+      ],
+      "voice_prompt": "Make a fist. Place it above the navel, below the ribcage.",
+      "animation_resource": "heimlich_fist.json",
+      "duration_seconds": 5
+    },
+    {
+      "step_number": 4,
+      "title": "Perform Thrusts",
+      "description": "Quick upward thrusts into abdomen",
+      "detailed_instructions": [
+        "Grasp fist with other hand",
+        "Give quick, upward thrusts",
+        "Use significant force",
+        "Perform 5 thrusts"
+      ]
+    },
+    {
+      "step_number": 5,
+      "title": "Check and Repeat",
+      "description": "Check if object is dislodged",
+      "detailed_instructions": [
+        "Check if person can breathe",
+        "Ask if they can speak",
+        "If still choking, repeat thrusts",
+        "If unconscious, start CPR"
+      ],
+      "voice_prompt": "Check if the person can breathe. If still choking, repeat the thrusts.",
+      "animation_resource": "heimlich_check.json",
+      "duration_seconds": 10,
+      "critical_warning": "If unconscious, immediately start CPR"
+    }
+
+  ]
+}

@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">VoxAid</string>
+    <string name="app_tagline">Voice-Guided Emergency Aid</string>
+
+    <!-- Content descriptions for accessibility -->
+    <string name="cd_app_logo">VoxAid logo</string>
+    <string name="cd_microphone_active">Microphone is active and listening</string>
+    <string name="cd_microphone_inactive">Microphone is inactive</string>
+    <string name="cd_back_button">Navigate back</string>
+</resources>

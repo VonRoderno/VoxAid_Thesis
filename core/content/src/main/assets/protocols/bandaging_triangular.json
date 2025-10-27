@@ -1,0 +1,79 @@
+{
+  "id": "bandaging_triangular",
+  "name": "Triangular Bandaging",
+  "description": "Using triangular bandages for slings and wounds",
+  "category": "bleeding",
+  "estimated_duration_minutes": 5,
+  "warning": "For moderate wounds and arm injuries. Call 911 for severe bleeding.",
+  "emergency_notes": [
+    "Triangular bandages are versatile for slings and head wounds",
+    "Can be folded into different widths"
+  ],
+  "steps": [
+    {
+      "step_number": 1,
+      "title": "Prepare Triangular Bandage",
+      "description": "Unfold or create triangular bandage",
+      "detailed_instructions": [
+        "Use commercial triangular bandage if available",
+        "Or fold square cloth diagonally",
+        "Should form large triangle"
+      ],
+      "voice_prompt": "Prepare a triangular bandage by unfolding it or folding a square cloth diagonally.",
+      "duration_seconds": 10
+    },
+    {
+      "step_number": 2,
+      "title": "Position for Arm Sling",
+      "description": "Place arm at right angle",
+      "detailed_instructions": [
+        "Bend injured arm at 90 degrees",
+        "Support forearm across chest",
+        "Hand slightly elevated"
+      ],
+      "voice_prompt": "Bend the injured arm at a ninety-degree angle across the chest.",
+      "animation_resource": "bandage_triangular_position.json",
+      "duration_seconds": 10
+    },
+    {
+      "step_number": 3,
+      "title": "Apply Triangular Bandage",
+      "description": "Drape bandage and tie",
+      "detailed_instructions": [
+        "Slide bandage under injured arm",
+        "Point of triangle toward elbow",
+        "Bring ends up around neck",
+        "Tie at side of neck"
+      ],
+      "voice_prompt": "Slide the bandage under the arm with the point toward the elbow. Bring the ends up and tie at the side of the neck.",
+      "animation_resource": "bandage_triangular_tie.json",
+      "duration_seconds": 30
+    },
+    {
+      "step_number": 4,
+      "title": "Secure the Elbow",
+      "description": "Pin or tie the point at elbow",
+      "detailed_instructions": [
+        "Fold point of triangle at elbow",
+        "Secure with safety pin or twist and tuck",
+        "Ensure arm is supported"
+      ],
+      "voice_prompt": "Secure the point of the bandage at the elbow with a pin or by tucking it in.",
+      "animation_resource": "bandage_triangular_secure.json",
+      "duration_seconds": 15
+    },
+    {
+      "step_number": 5,
+      "title": "Check and Adjust",
+      "description": "Ensure comfort and proper support",
+      "detailed_instructions": [
+        "Check fingertips for circulation",
+        "Adjust tightness if needed",
+        "Ensure hand is slightly elevated",
+        "Seek medical attention"
+      ],
+      "voice_prompt": "Check fingertips for good circulation. Adjust if needed and seek medical attention.",
+      "duration_seconds": 15
+    }
+  ]
+}

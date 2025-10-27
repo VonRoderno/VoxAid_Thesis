@@ -1,0 +1,99 @@
+{
+  "id": "cpr_2person",
+  "name": "2-Person CPR",
+  "description": "CPR performed by two rescuers",
+  "category": "cardiac",
+  "estimated_duration_minutes": 2,
+  "metronome_bpm": 110,
+  "warning": "Only perform CPR if the person is unresponsive and not breathing. Coordinate with your partner.",
+  "emergency_notes": [
+    "Switch roles every 2 minutes to prevent fatigue",
+    "One person does compressions, other does breaths",
+    "Maintain 30:2 compression-to-breath ratio"
+  ],
+  "steps": [
+    {
+      "step_number": 1,
+      "title": "Check Responsiveness",
+      "description": "One rescuer checks, other calls 911",
+      "detailed_instructions": [
+        "First rescuer: Check responsiveness",
+        "Second rescuer: Call 911 immediately",
+        "Confirm person is unresponsive and not breathing"
+      ],
+      "voice_prompt": "First rescuer checks responsiveness. Second rescuer calls nine one one.",
+      "animation_resource": "cpr_check_response.json",
+      "duration_seconds": 5
+    },
+    {
+      "step_number": 2,
+      "title": "Assign Roles",
+      "description": "Decide who does compressions and who does breaths",
+      "detailed_instructions": [
+        "Stronger rescuer does compressions",
+        "Other rescuer manages airway and breaths",
+        "Position on opposite sides of victim"
+      ],
+      "voice_prompt": "Assign roles. Stronger person does compressions, other does rescue breaths.",
+      "animation_resource": "cpr_2person_positions.json",
+      "duration_seconds": 5
+    },
+    {
+      "step_number": 3,
+      "title": "Compression Rescuer: Position Hands",
+      "description": "First rescuer positions hands on chest center",
+      "detailed_instructions": [
+        "Place heel of one hand on center of chest",
+        "Place other hand on top",
+        "Interlock fingers",
+        "Keep arms straight"
+      ],
+      "voice_prompt": "Compression rescuer: position hands on center of chest.",
+      "animation_resource": "cpr_hand_position.json",
+      "duration_seconds": 5
+    },
+    {
+      "step_number": 4,
+      "title": "Perform 30 Compressions",
+      "description": "First rescuer does 30 compressions",
+      "detailed_instructions": [
+        "Count compressions out loud",
+        "Push 2 inches deep",
+        "Follow 110 BPM rhythm",
+        "Allow full chest recoil"
+      ],
+      "voice_prompt": "First rescuer: perform 30 compressions. Count out loud.",
+      "animation_resource": "cpr_compressions.json",
+      "duration_seconds": 18,
+      "critical_warning": "Count out loud so partner knows when to give breaths"
+    },
+    {
+      "step_number": 5,
+      "title": "Give 2 Rescue Breaths",
+      "description": "Second rescuer gives 2 breaths",
+      "detailed_instructions": [
+        "Tilt head back to open airway",
+        "Pinch nose shut",
+        "Give 2 one-second breaths",
+        "Watch for chest rise"
+      ],
+      "voice_prompt": "Second rescuer: give 2 rescue breaths while partner pauses compressions.",
+      "animation_resource": "cpr_rescue_breaths.json",
+      "duration_seconds": 10
+    },
+    {
+      "step_number": 6,
+      "title": "Continue Cycle and Switch",
+      "description": "Repeat cycle and switch roles every 2 minutes",
+      "detailed_instructions": [
+        "Continue 30 compressions, 2 breaths",
+        "Switch roles after 2 minutes",
+        "Switch quickly (less than 5 seconds)",
+        "Continue until help arrives"
+      ],
+      "voice_prompt": "Continue the cycle. Switch roles every 2 minutes to prevent fatigue.",
+      "animation_resource": "cpr_2person_switch.json",
+      "critical_warning": "Quick switches minimize interruptions to chest compressions"
+    }
+  ]
+}
