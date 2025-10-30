@@ -1,18 +1,22 @@
 package com.voxaid.feature.main.variant
 
+import android.content.Intent
+import android.net.Uri
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.voxaid.core.design.components.Call911Dialog
 import com.voxaid.core.design.components.VoxAidTopBar
 import com.voxaid.core.design.theme.VoxAidTheme
 
@@ -29,12 +33,36 @@ fun ProtocolVariantScreen(
 ) {
     val isEmergency = mode == "emergency"
     val variants = getProtocolVariants(protocolId)
+    val context = LocalContext.current
+    var show911Dialog by remember { mutableStateOf(false) }
+
+    // Handle 911 dialog
+    if (show911Dialog) {
+        Call911Dialog(
+            onConfirm = {
+                show911Dialog = false
+                // Launch dialer with 911
+                val intent = Intent(Intent.ACTION_DIAL).apply {
+                    data = Uri.parse("tel:911")
+                    flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                }
+                try {
+                    context.startActivity(intent)
+                } catch (e: Exception) {
+                    timber.log.Timber.e(e, "Failed to launch dialer")
+                }
+            },
+            onDismiss = { show911Dialog = false }
+        )
+    }
 
     Scaffold(
         topBar = {
             VoxAidTopBar(
                 title = getProtocolTitle(protocolId),
-                onBackClick = onBackClick
+                onBackClick = onBackClick,
+                show911Button = true,
+                on911Click = { show911Dialog = true }
             )
         }
     ) { paddingValues ->

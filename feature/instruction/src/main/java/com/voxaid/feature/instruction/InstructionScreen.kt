@@ -43,16 +43,22 @@ fun InstructionScreen(
         }
     }
 
-    // Handle 911 dialog triggered by voice command
+    // Handle 911 dialog - can be triggered by voice command or button tap
     if (show911Dialog) {
         Call911Dialog(
             onConfirm = {
                 viewModel.dismiss911Dialog()
+                // Launch dialer with 911
                 val intent = Intent(Intent.ACTION_DIAL).apply {
                     data = Uri.parse("tel:911")
                     flags = Intent.FLAG_ACTIVITY_NEW_TASK
                 }
-                context.startActivity(intent)
+                try {
+                    context.startActivity(intent)
+                } catch (e: Exception) {
+                    // Handle case where dialer is not available
+                    timber.log.Timber.e(e, "Failed to launch dialer")
+                }
             },
             onDismiss = { viewModel.dismiss911Dialog() }
         )
@@ -69,14 +75,18 @@ fun InstructionScreen(
                             onBackClick()
                         },
                         showMicIndicator = true,
-                        isMicActive = audioState.isListening
+                        isMicActive = audioState.isListening,
+                        show911Button = true,
+                        on911Click = { viewModel.show911Dialog }
                     )
                 }
 
                 else -> {
                     VoxAidTopBar(
                         title = "Loading...",
-                        onBackClick = onBackClick
+                        onBackClick = onBackClick,
+                        show911Button = true,
+                        on911Click = { viewModel.show911Dialog }
                     )
                 }
             }
