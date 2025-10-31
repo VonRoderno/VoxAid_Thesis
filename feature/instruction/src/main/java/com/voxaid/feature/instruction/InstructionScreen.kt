@@ -17,6 +17,11 @@ import com.voxaid.core.design.components.VoxAidTopBar
 import com.voxaid.core.design.theme.VoxAidTheme
 import com.voxaid.feature.instruction.components.*
 
+/**
+ * Instruction screen for displaying protocol steps.
+ * Handles both instructional and emergency modes.
+ * Tracks completion and unlocks emergency mode variants.
+ */
 @Composable
 fun InstructionScreen(
     onBackClick: () -> Unit,
@@ -77,7 +82,7 @@ fun InstructionScreen(
                         showMicIndicator = true,
                         isMicActive = audioState.isListening,
                         show911Button = true,
-                        on911Click = { viewModel.show911Dialog }
+                        on911Click = { viewModel.show911Dialog() }
                     )
                 }
 
@@ -86,7 +91,7 @@ fun InstructionScreen(
                         title = "Loading...",
                         onBackClick = onBackClick,
                         show911Button = true,
-                        on911Click = { viewModel.show911Dialog }
+                        on911Click = { viewModel.show911Dialog() }
                     )
                 }
             }

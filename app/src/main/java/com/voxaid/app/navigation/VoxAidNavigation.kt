@@ -120,6 +120,11 @@ fun VoxAidNavHost(
                 },
                 onBackClick = {
                     navController.popBackStack()
+                },
+                onNavigateToInstructional = { variant ->
+                    navController.navigate(
+                        VoxAidRoute.Instruction.createRoute("Instructional",variant)
+                    )
                 }
             )
         }

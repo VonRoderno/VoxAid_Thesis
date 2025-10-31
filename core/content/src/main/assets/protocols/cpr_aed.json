@@ -16,6 +16,11 @@
       "step_number": 1,
       "title": "Check and Call",
       "description": "Check responsiveness and call 911",
+      "detailed_instructions": [
+        "Open AED case",
+        "Press power button",
+        "Listen to voice prompts"
+      ],
       "voice_prompt": "Check responsiveness and call nine one one immediately.",
       "duration_seconds": 10
     },
@@ -23,6 +28,11 @@
       "step_number": 2,
       "title": "Start CPR",
       "description": "Begin chest compressions",
+      "detailed_instructions": [
+        "Open AED case",
+        "Press power button",
+        "Listen to voice prompts"
+      ],
       "voice_prompt": "Start chest compressions while someone gets the AED.",
       "duration_seconds": 20,
       "critical_warning": "Start CPR first, don't wait for AED"

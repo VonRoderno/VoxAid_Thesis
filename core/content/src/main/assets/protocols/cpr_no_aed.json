@@ -16,12 +16,22 @@
       "title": "Check Responsiveness",
       "description": "Confirm person is unresponsive",
       "voice_prompt": "Check if the person responds. Tap shoulders and shout.",
+      "detailed_instructions": [
+        "Open AED case",
+        "Press power button",
+        "Listen to voice prompts"
+      ],
       "duration_seconds": 5
     },
     {
       "step_number": 2,
       "title": "Call 911",
       "description": "Call emergency services immediately",
+      "detailed_instructions": [
+        "Open AED case",
+        "Press power button",
+        "Listen to voice prompts"
+      ],
       "voice_prompt": "Call nine one one immediately. State that person is unresponsive and not breathing.",
       "duration_seconds": 10,
       "critical_warning": "Do not delay calling 911"

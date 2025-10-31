@@ -11,12 +11,6 @@
   ],
   "steps": [
     {
-      "voice_prompt": "Grasp your fist with your other hand. Give five quick, upward thrusts into the abdomen.",
-      "animation_resource": "heimlich_thrust.json",
-      "duration_seconds": 10,
-      "critical_warning": "Use forceful upward motion"
-    },
-    {
       "step_number": 1,
       "title": "Assess the Situation",
       "description": "Confirm person is choking",

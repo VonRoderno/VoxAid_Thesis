@@ -6,6 +6,8 @@ import androidx.lifecycle.viewModelScope
 import com.voxaid.core.audio.AudioSessionManager
 import com.voxaid.core.audio.model.VoiceIntent
 import com.voxaid.core.common.datastore.PreferencesManager
+import com.voxaid.core.common.datastore.ProtocolCompletionManager
+import com.voxaid.core.common.model.UnlockResult
 import com.voxaid.core.common.tts.TtsEvent
 import com.voxaid.core.common.tts.TtsManager
 import com.voxaid.core.content.model.Protocol
@@ -21,7 +23,8 @@ import javax.inject.Inject
 
 /**
  * ViewModel for instruction screen.
- * Manages protocol data, step navigation, TTS, ASR, and voice commands.
+ * Manages protocol data, step navigation, TTS, ASR, voice commands,
+ * and protocol completion tracking.
  */
 @HiltViewModel
 class InstructionViewModel @Inject constructor(
@@ -29,7 +32,8 @@ class InstructionViewModel @Inject constructor(
     private val protocolRepository: ProtocolRepository,
     private val ttsManager: TtsManager,
     private val audioSessionManager: AudioSessionManager,
-    private val preferencesManager: PreferencesManager
+    private val preferencesManager: PreferencesManager,
+    private val completionManager: ProtocolCompletionManager
 ) : ViewModel() {
 
     // Get navigation arguments from SavedStateHandle
@@ -57,6 +61,14 @@ class InstructionViewModel @Inject constructor(
 
     val metronomeBpm: Int = 110 // CPR recommended rate
 
+    // 911 dialog state
+    private val _show911Dialog = MutableStateFlow(false)
+    val show911Dialog: StateFlow<Boolean> = _show911Dialog.asStateFlow()
+
+    // Completion dialog state
+    private val _showCompletionDialog = MutableStateFlow(false)
+    val showCompletionDialog: StateFlow<Boolean> = _showCompletionDialog.asStateFlow()
+
     init {
         loadProtocol()
         observePreferences()
@@ -77,8 +89,6 @@ class InstructionViewModel @Inject constructor(
             audioSessionManager.audioState
                 .flatMapLatest { state ->
                     if (state.asrReady) {
-                        // Get ASR manager from session and observe intents
-                        // For now, we'll collect from a placeholder
                         audioSessionManager.recognizedIntents
                     } else {
                         emptyFlow()
@@ -98,17 +108,14 @@ class InstructionViewModel @Inject constructor(
             is VoiceIntent.PreviousStep -> previousStep()
             is VoiceIntent.RepeatStep -> repeatStep()
             is VoiceIntent.GoToStep -> {
-                // Convert to 0-based index
                 goToStep(intent.stepNumber - 1)
             }
             is VoiceIntent.StartMetronome -> startMetronome()
             is VoiceIntent.StopMetronome -> stopMetronome()
             is VoiceIntent.Help -> {
-                // Repeat current step as help
                 repeatStep()
             }
             is VoiceIntent.Call911 -> {
-                // Emit event to trigger 911 call from UI
                 _show911Dialog.value = true
                 Timber.w("Voice command: Call 911 - showing dialog")
             }
@@ -118,12 +125,17 @@ class InstructionViewModel @Inject constructor(
         }
     }
 
-    // Add new state for 911 dialog
-    private val _show911Dialog = MutableStateFlow(false)
-    val show911Dialog: StateFlow<Boolean> = _show911Dialog.asStateFlow()
-
     fun dismiss911Dialog() {
         _show911Dialog.value = false
+    }
+
+    fun show911Dialog() {
+        _show911Dialog.value = true
+        Timber.i("Call 911 dialog shown via button tap")
+    }
+
+    fun dismissCompletionDialog() {
+        _showCompletionDialog.value = false
     }
 
     fun startMetronome() {
@@ -172,7 +184,6 @@ class InstructionViewModel @Inject constructor(
                 when (event) {
                     is TtsEvent.Completed -> {
                         if (autoAdvanceEnabled.value && isEmergencyMode) {
-                            // Auto-advance after TTS completes in emergency mode
                             val currentStep = protocol?.steps?.getOrNull(_currentStepIndex.value)
                             currentStep?.durationSeconds?.let { duration ->
                                 delay(duration * 1000L)
@@ -182,9 +193,7 @@ class InstructionViewModel @Inject constructor(
                             }
                         }
                     }
-                    else -> {
-                        // Handle other TTS events if needed
-                    }
+                    else -> {}
                 }
             }
         }
@@ -205,6 +214,11 @@ class InstructionViewModel @Inject constructor(
                     // Speak first step if TTS enabled
                     if (ttsEnabled.value) {
                         speakStep(loadedProtocol.steps[0])
+                    }
+
+                    // Update progress tracking
+                    if (!isEmergencyMode) {
+                        completionManager.updateProgress(variantId, 0)
                     }
 
                     Timber.i("Protocol loaded: ${loadedProtocol.name}")
@@ -235,9 +249,43 @@ class InstructionViewModel @Inject constructor(
                 speakStep(nextStep)
             }
 
+            // Update progress in instructional mode
+            if (!isEmergencyMode) {
+                viewModelScope.launch {
+                    completionManager.updateProgress(variantId, nextIndex)
+                }
+            }
+
+            // Check if this is the final step in instructional mode
+            if (!isEmergencyMode && nextIndex == currentProtocol.steps.size - 1) {
+                markProtocolAsCompleted()
+            }
+
             Timber.d("Moved to step $nextIndex")
         } else {
             Timber.d("Already at last step")
+        }
+    }
+
+    /**
+     * Marks the protocol as completed and unlocks it for emergency mode.
+     * Called when user reaches the final step in instructional mode.
+     */
+    private fun markProtocolAsCompleted() {
+        viewModelScope.launch {
+            when (val result = completionManager.markAsCompleted(variantId)) {
+                is UnlockResult.NewlyUnlocked -> {
+                    Timber.i("Protocol $variantId newly unlocked!")
+                    // Show celebration dialog
+                    _showCompletionDialog.value = true
+                }
+                is UnlockResult.AlreadyUnlocked -> {
+                    Timber.d("Protocol $variantId was already unlocked")
+                }
+                is UnlockResult.StillLocked -> {
+                    Timber.w("Protocol $variantId still locked: ${result.reason}")
+                }
+            }
         }
     }
 
@@ -287,6 +335,18 @@ class InstructionViewModel @Inject constructor(
 
             if (ttsEnabled.value) {
                 speakStep(step)
+            }
+
+            // Update progress
+            if (!isEmergencyMode) {
+                viewModelScope.launch {
+                    completionManager.updateProgress(variantId, stepIndex)
+                }
+            }
+
+            // Check if jumped to final step
+            if (!isEmergencyMode && stepIndex == currentProtocol.steps.size - 1) {
+                markProtocolAsCompleted()
             }
 
             Timber.d("Jumped to step $stepIndex")
