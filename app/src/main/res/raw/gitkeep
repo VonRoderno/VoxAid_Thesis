@@ -1,0 +1,6 @@
+# GIF Animation Assets Directory
+
+Place your GIF animation files here using this naming convention:
+
+## Naming Convention
+`anim_[protocol]_[action].gif`

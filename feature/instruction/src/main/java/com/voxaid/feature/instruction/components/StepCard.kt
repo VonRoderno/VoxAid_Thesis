@@ -15,6 +15,7 @@ import com.voxaid.core.design.theme.VoxAidTheme
 /**
  * Card displaying a single instruction step.
  * Adapts styling for emergency vs instructional mode.
+ * Now uses GIF animations instead of Lottie.
  */
 @Composable
 fun StepCard(
@@ -165,45 +166,17 @@ fun StepCard(
                 }
             }
 
-            // Animation placeholder
+            // GIF Animation (replaces Lottie)
             step.animationResource?.let { animationRes ->
                 Spacer(modifier = Modifier.height(24.dp))
 
-                LottieAnimationPlaceholder(
+                AnimationView(
                     animationResource = animationRes,
-                    isEmergencyMode = isEmergencyMode
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(if (isEmergencyMode) 280.dp else 250.dp)
                 )
             }
-        }
-    }
-}
-
-@Composable
-private fun LottieAnimationPlaceholder(
-    animationResource: String,
-    isEmergencyMode: Boolean
-) {
-    // Placeholder for Lottie animation
-    // TODO: Phase 2 - Implement actual Lottie animation
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(if (isEmergencyMode) 250.dp else 200.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant
-        )
-    ) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(16.dp),
-            contentAlignment = androidx.compose.ui.Alignment.Center
-        ) {
-            Text(
-                text = "Animation: $animationResource\n(Lottie placeholder)",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
         }
     }
 }
@@ -242,7 +215,8 @@ private fun StepCardEmergencyPreview() {
                 title = "Start Compressions",
                 description = "Push hard and fast, 100-120 per minute",
                 voicePrompt = "Start chest compressions.",
-                criticalWarning = "Compressions save lives. Don't stop!"
+                criticalWarning = "Compressions save lives. Don't stop!",
+                animationResource = "cpr_compressions.json"
             ),
             isEmergencyMode = true,
             totalSteps = 6

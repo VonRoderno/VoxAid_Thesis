@@ -42,8 +42,9 @@ dependencies {
     implementation(libs.compose.material.icons)
     debugImplementation(libs.compose.ui.tooling)
 
-    // Lottie
-    implementation(libs.lottie.compose)
+    // Coil for GIF loading (replaces Lottie)
+    implementation(libs.coil.compose)
+    implementation(libs.coil.gif)
 
     // AndroidX
     implementation(libs.androidx.core.ktx)
