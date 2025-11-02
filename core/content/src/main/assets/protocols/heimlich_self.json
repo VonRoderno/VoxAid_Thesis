@@ -1,68 +1,48 @@
 {
   "id": "heimlich_self",
   "name": "Self Heimlich Maneuver",
-  "description": "Perform Heimlich on yourself when alone",
+  "description": "Perform Heimlich on yourself when choking alone",
   "category": "airway",
   "estimated_duration_minutes": 1,
-  "warning": "Use when choking and alone. Call 911 if possible first.",
+  "warning": "Use when choking and alone. Act quickly - you may lose consciousness.",
   "emergency_notes": [
-    "Use firm surface if fist method doesn't work",
-    "Bend over hard surface and thrust"
+    "Try coughing first if you can",
+    "Use a hard surface if fist method doesn't work",
+    "Call 911 if possible before starting"
   ],
   "steps": [
     {
       "step_number": 1,
-      "title": "Recognize Choking",
-      "description": "Confirm you cannot breathe",
-      "detailed_instructions": [
-        "Cannot cough or speak",
-        "Cannot get air",
-        "Feeling panicked"
-      ],
-      "voice_prompt": "If you cannot cough, speak, or breathe, you are choking.",
-      "duration_seconds": 3
+      "title": "Try Coughing",
+      "description": "Try coughing until you are free of the object you are being choked on.",
+      "voice_prompt": "Try to cough forcefully to dislodge the object.",
+      "duration_seconds": 10,
+      "critical_warning": "If you can cough, try this first before other methods"
     },
     {
       "step_number": 2,
-      "title": "Make a Fist",
-      "description": "Position fist above your navel",
-      "detailed_instructions": [
-        "Make fist with one hand",
-        "Place above navel",
-        "Below ribcage",
-        "Grasp with other hand"
-      ],
-      "voice_prompt": "Make a fist above your navel. Grasp it with your other hand.",
-      "animation_resource": "heimlich_self_fist.json",
-      "duration_seconds": 5
+      "title": "Find a Hard Surface",
+      "description": "If the object is still inside you, find a hard surface at the height of your belly.",
+      "voice_prompt": "Find a hard surface like a table, chair, or kitchen countertop at belly height.",
+      "animation_resource": "heimlich_self_chair.json",
+      "duration_seconds": 5,
+      "critical_warning": "Examples: Table edge, chair back, kitchen countertop"
     },
     {
       "step_number": 3,
-      "title": "Perform Self Thrusts",
-      "description": "Quick upward thrusts into your abdomen",
-      "detailed_instructions": [
-        "Bend slightly forward",
-        "Thrust fist inward and upward",
-        "Use quick, forceful motions",
-        "Repeat until object dislodges"
-      ],
-      "voice_prompt": "Thrust your fist inward and upward into your abdomen. Repeat until object comes out.",
+      "title": "Lean on Surface",
+      "description": "Lean on the surface and slam your belly as hard as you can.",
+      "voice_prompt": "Lean on the hard surface and thrust your belly against it as hard as you can.",
       "animation_resource": "heimlich_self_thrust.json",
-      "critical_warning": "Use forceful thrusts - your life depends on it"
+      "duration_seconds": 5
     },
     {
       "step_number": 4,
-      "title": "Alternative: Use Chair or Counter",
-      "description": "If fist method fails, use firm surface",
-      "detailed_instructions": [
-        "Find chair back or counter edge",
-        "Position just above navel",
-        "Press abdomen forcefully against edge",
-        "Thrust upward against surface"
-      ],
-      "voice_prompt": "If fist method doesn't work, use a chair back or counter. Press your abdomen against it and thrust upward.",
-      "animation_resource": "heimlich_self_chair.json",
-      "critical_warning": "Use any firm surface available"
+      "title": "Repeat Until Clear",
+      "description": "Repeatedly slam your belly while coughing until you are free of the object.",
+      "voice_prompt": "Repeat thrusts while coughing until the object is dislodged.",
+      "animation_resource": "heimlich_self_thrust.json",
+      "critical_warning": "Continue until object is expelled or you can breathe. If you become unconscious, emergency services should perform CPR."
     }
   ]
 }

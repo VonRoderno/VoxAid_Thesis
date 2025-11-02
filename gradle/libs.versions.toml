@@ -21,6 +21,10 @@ androidxTest = "1.7.0"
 composeTest = "1.6.2"
 espresso = "3.7.0"
 voskAndroid = "0.3.70"
+foundation = "1.9.4"
+uiGraphics = "1.9.4"
+ui = "1.9.4"
+uiText = "1.9.4"
 
 [libraries]
 # Compose
@@ -81,6 +85,10 @@ androidx-test-ext-junit = { group = "androidx.test.ext", name = "junit", version
 androidx-test-runner = { group = "androidx.test", name = "runner", version.ref = "androidxTest" }
 androidx-test-rules = { group = "androidx.test", name = "rules", version.ref = "androidxTest" }
 espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espresso" }
+androidx-foundation = { group = "androidx.compose.foundation", name = "foundation", version.ref = "foundation" }
+androidx-ui-graphics = { group = "androidx.compose.ui", name = "ui-graphics", version.ref = "uiGraphics" }
+androidx-ui = { group = "androidx.compose.ui", name = "ui", version.ref = "ui" }
+androidx-ui-text = { group = "androidx.compose.ui", name = "ui-text", version.ref = "uiText" }
 
 
 [plugins]

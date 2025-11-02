@@ -1,6 +1,10 @@
 package com.voxaid.feature.main.menu
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.LocalHospital
 import androidx.compose.material.icons.filled.School
@@ -8,6 +12,10 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -91,42 +99,58 @@ fun MainMenuScreen(
 private fun ModeSelectionCard(
     title: String,
     description: String,
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    icon: ImageVector,
     onClick: () -> Unit,
     isEmergency: Boolean = false
 ) {
-    Card(
+    // Choose gradient depending on mode
+    val gradient = if (isEmergency) {
+        listOf(
+            MaterialTheme.colorScheme.error,
+            MaterialTheme.colorScheme.error.copy(alpha = 0.6f)
+        )
+    } else {
+        listOf(
+            MaterialTheme.colorScheme.primary,
+            MaterialTheme.colorScheme.primary.copy(alpha = 0.6f)
+        )
+    }
+
+    // Container background stays surface for readability
+    val bgColor = MaterialTheme.colorScheme.surface
+
+    val borderColor = if (isEmergency) {
+        MaterialTheme.colorScheme.error
+    } else {
+        MaterialTheme.colorScheme.primary
+    }
+
+    Box(
         modifier = Modifier
             .fillMaxWidth()
-            .height(180.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = if (isEmergency) {
-                MaterialTheme.colorScheme.errorContainer
-            } else {
-                MaterialTheme.colorScheme.primaryContainer
-            }
-        ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+            .height(180.dp)
+            .clip(RoundedCornerShape(20.dp))
+            .clickable { onClick() }
+            .background(bgColor)
+            .border(
+                width = 2.dp,
+                brush = Brush.linearGradient(gradient),
+                shape = RoundedCornerShape(20.dp)
+            )
+            .shadow(6.dp, RoundedCornerShape(20.dp))
+            .padding(20.dp)
     ) {
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(20.dp),
+            modifier = Modifier.fillMaxSize(),
             verticalArrangement = Arrangement.SpaceBetween
         ) {
             Column {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(
                         imageVector = icon,
                         contentDescription = null,
                         modifier = Modifier.size(32.dp),
-                        tint = if (isEmergency) {
-                            MaterialTheme.colorScheme.onErrorContainer
-                        } else {
-                            MaterialTheme.colorScheme.onPrimaryContainer
-                        }
+                        tint = borderColor
                     )
 
                     Spacer(modifier = Modifier.width(12.dp))
@@ -134,11 +158,7 @@ private fun ModeSelectionCard(
                     Text(
                         text = title,
                         style = MaterialTheme.typography.titleLarge,
-                        color = if (isEmergency) {
-                            MaterialTheme.colorScheme.onErrorContainer
-                        } else {
-                            MaterialTheme.colorScheme.onPrimaryContainer
-                        }
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                 }
 
@@ -147,30 +167,25 @@ private fun ModeSelectionCard(
                 Text(
                     text = description,
                     style = MaterialTheme.typography.bodyMedium,
-                    color = if (isEmergency) {
-                        MaterialTheme.colorScheme.onErrorContainer
-                    } else {
-                        MaterialTheme.colorScheme.onPrimaryContainer
-                    }
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
 
-            if (isEmergency) {
-                EmergencyButton(
-                    text = "Start",
-                    onClick = onClick,
-                    modifier = Modifier.fillMaxWidth()
-                )
-            } else {
-                PrimaryButton(
-                    text = "Start",
-                    onClick = onClick,
-                    modifier = Modifier.fillMaxWidth()
-                )
+            Button(
+                onClick = onClick,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = borderColor,
+                    contentColor = MaterialTheme.colorScheme.onPrimary
+                ),
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp)
+            ) {
+                Text("Start")
             }
         }
     }
 }
+
 
 @Preview(showBackground = true)
 @Composable

@@ -2,9 +2,13 @@ package com.voxaid.feature.main.variant
 
 import android.content.Intent
 import android.net.Uri
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -83,12 +87,26 @@ fun ProtocolVariantScreen(
                 show911Button = true,
                 on911Click = { show911Dialog = true }
             )
-        }
+        },
+        containerColor = MaterialTheme.colorScheme.surface
     ) { paddingValues ->
+        val emergencyFrame = if (mode == "emergency") {
+            Modifier
+                .padding(paddingValues)
+                .border(
+                    width = 3.dp,
+                    color = MaterialTheme.colorScheme.error,
+                    shape = RoundedCornerShape(0.dp)
+                )
+                .background(MaterialTheme.colorScheme.error.copy(alpha = 0.05f))
+        } else {
+            Modifier.padding(paddingValues)
+        }
+
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues)
+                .then(emergencyFrame)
         ) {
             when (val state = uiState) {
                 is VariantScreenUiState.Loading -> {
@@ -175,67 +193,45 @@ private fun EmergencyModeBanner(
     totalCount: Int,
     allLocked: Boolean
 ) {
+    val color = if (allLocked) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .padding(16.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = if (allLocked) {
-                MaterialTheme.colorScheme.errorContainer
-            } else {
-                MaterialTheme.colorScheme.primaryContainer
-            }
-        )
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        border = BorderStroke(2.dp, color),
+        shape = RoundedCornerShape(8.dp)
     ) {
-        Column(
-            modifier = Modifier.padding(16.dp)
+        Row(
+            modifier = Modifier.padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(
-                    imageVector = if (allLocked) Icons.Default.Lock else Icons.Default.LockOpen,
-                    contentDescription = null,
-                    tint = if (allLocked) {
-                        MaterialTheme.colorScheme.onErrorContainer
-                    } else {
-                        MaterialTheme.colorScheme.onPrimaryContainer
-                    },
-                    modifier = Modifier.size(24.dp)
+            Icon(
+                imageVector = if (allLocked) Icons.Default.Lock else Icons.Default.LockOpen,
+                contentDescription = null,
+                tint = color,
+                modifier = Modifier.size(28.dp)
+            )
+
+            Spacer(modifier = Modifier.width(12.dp))
+
+            Column {
+                Text(
+                    text = if (allLocked) "All Variants Locked" else "Unlocked: $unlockedCount / $totalCount",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface
                 )
 
-                Spacer(modifier = Modifier.width(12.dp))
-
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = if (allLocked) {
-                            "All Variants Locked"
-                        } else {
-                            "Unlocked: $unlockedCount/$totalCount"
-                        },
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = if (allLocked) {
-                            MaterialTheme.colorScheme.onErrorContainer
-                        } else {
-                            MaterialTheme.colorScheme.onPrimaryContainer
-                        }
-                    )
-
-                    Text(
-                        text = if (allLocked) {
-                            "Complete these protocols in Instructional Mode to unlock them for emergencies"
-                        } else {
-                            "Complete more in Instructional Mode to unlock additional variants"
-                        },
-                        style = MaterialTheme.typography.bodySmall,
-                        color = if (allLocked) {
-                            MaterialTheme.colorScheme.onErrorContainer.copy(alpha = 0.8f)
-                        } else {
-                            MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
-                        }
-                    )
-                }
+                Text(
+                    text = if (allLocked)
+                        "Finish instructional training to unlock emergency variants"
+                    else
+                        "Complete more in instructional mode to unlock additional variants",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
         }
     }
@@ -249,57 +245,43 @@ private fun VariantCardWithLock(
 ) {
     val isLocked = isEmergencyMode && !lockState.isUnlocked
 
+    val borderColor = when {
+        !isEmergencyMode -> MaterialTheme.colorScheme.primary
+        isLocked -> MaterialTheme.colorScheme.outline
+        else -> MaterialTheme.colorScheme.error
+    }
+
     Card(
         onClick = onClick,
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(
-            containerColor = when {
-                !isEmergencyMode -> MaterialTheme.colorScheme.primaryContainer
-                isLocked -> MaterialTheme.colorScheme.surfaceVariant
-                else -> MaterialTheme.colorScheme.errorContainer
-            }
-        ),
-        elevation = CardDefaults.cardElevation(
-            defaultElevation = if (isLocked) 0.dp else 2.dp
-        )
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        border = BorderStroke(2.dp, borderColor),
+        shape = RoundedCornerShape(12.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = if (isLocked) 0.dp else 2.dp)
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(20.dp)
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                // Lock/Unlock icon
+
+            Row(verticalAlignment = Alignment.CenterVertically) {
+
                 Icon(
                     imageVector = if (isLocked) Icons.Default.Lock else getVariantIcon(lockState.variantId),
                     contentDescription = null,
                     modifier = Modifier.size(40.dp),
-                    tint = when {
-                        !isEmergencyMode -> MaterialTheme.colorScheme.onPrimaryContainer
-                        isLocked -> MaterialTheme.colorScheme.onSurfaceVariant
-                        else -> MaterialTheme.colorScheme.onErrorContainer
-                    }
+                    tint = borderColor
                 )
 
                 Spacer(modifier = Modifier.width(16.dp))
 
-                Column(
-                    modifier = Modifier.weight(1f)
-                ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
                             text = lockState.name,
                             style = MaterialTheme.typography.titleMedium,
-                            color = when {
-                                !isEmergencyMode -> MaterialTheme.colorScheme.onPrimaryContainer
-                                isLocked -> MaterialTheme.colorScheme.onSurfaceVariant
-                                else -> MaterialTheme.colorScheme.onErrorContainer
-                            }
+                            color = MaterialTheme.colorScheme.onSurface
                         )
 
                         if (isEmergencyMode && lockState.isUnlocked) {
@@ -318,20 +300,12 @@ private fun VariantCardWithLock(
                     Text(
                         text = lockState.description,
                         style = MaterialTheme.typography.bodySmall,
-                        color = when {
-                            !isEmergencyMode -> MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
-                            isLocked -> MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
-                            else -> MaterialTheme.colorScheme.onErrorContainer.copy(alpha = 0.8f)
-                        }
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
 
-                    // Show lock message for locked variants
                     if (isLocked) {
                         Spacer(modifier = Modifier.height(8.dp))
-
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
                             Icon(
                                 imageVector = Icons.Default.Info,
                                 contentDescription = null,
@@ -346,10 +320,8 @@ private fun VariantCardWithLock(
                             )
                         }
 
-                        // Show progress if user has started
                         if (lockState.showProgress) {
                             Spacer(modifier = Modifier.height(8.dp))
-
                             Column {
                                 Text(
                                     text = "Progress: ${lockState.completion?.progressPercentage}%",
@@ -363,8 +335,7 @@ private fun VariantCardWithLock(
                                     progress = { (lockState.completion?.progressPercentage ?: 0) / 100f },
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .height(4.dp),
-                                    color = MaterialTheme.colorScheme.primary
+                                        .height(4.dp)
                                 )
                             }
                         }
@@ -373,12 +344,8 @@ private fun VariantCardWithLock(
 
                 Icon(
                     imageVector = if (isLocked) Icons.Default.Lock else Icons.Default.ArrowForward,
-                    contentDescription = if (isLocked) "Locked" else "Select ${lockState.name}",
-                    tint = when {
-                        !isEmergencyMode -> MaterialTheme.colorScheme.onPrimaryContainer
-                        isLocked -> MaterialTheme.colorScheme.onSurfaceVariant
-                        else -> MaterialTheme.colorScheme.onErrorContainer
-                    }
+                    contentDescription = null,
+                    tint = borderColor
                 )
             }
         }

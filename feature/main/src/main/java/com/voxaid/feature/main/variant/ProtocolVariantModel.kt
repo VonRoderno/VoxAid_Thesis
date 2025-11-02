@@ -13,6 +13,8 @@ import javax.inject.Inject
 /**
  * ViewModel for protocol variant selection screen.
  * Manages variant list with lock/unlock status based on completion.
+ *
+ * Updated: New bandaging variants (head, hand, arm_sling)
  */
 @HiltViewModel
 class ProtocolVariantViewModel @Inject constructor(
@@ -46,7 +48,7 @@ class ProtocolVariantViewModel @Inject constructor(
                     }
 
                     val completion = if (isEmergencyMode) {
-                        completionManager.getCompletionData(variant.id, 6) // Estimate 6 steps
+                        completionManager.getCompletionData(variant.id, variant.estimatedSteps)
                     } else null
 
                     ProtocolLockState(
@@ -98,57 +100,65 @@ class ProtocolVariantViewModel @Inject constructor(
     }
 
     /**
-     * Helper to get variants for a protocol (same as in ProtocolVariantScreen).
-     * TODO: Move to repository layer for better separation of concerns.
+     * Helper to get variants for a protocol.
+     * Updated with new bandaging variants.
      */
     private fun getProtocolVariants(protocolId: String): List<VariantData> {
         return when (protocolId) {
             "cpr" -> listOf(
                 VariantData(
                     id = "cpr_1person",
-                    name = "1-Person CPR",
-                    description = "Standard CPR performed by one rescuer"
+                    name = "One-Person CPR",
+                    description = "Standard CPR performed by one rescuer",
+                    estimatedSteps = 9
                 ),
                 VariantData(
                     id = "cpr_2person",
-                    name = "2-Person CPR",
-                    description = "CPR with two rescuers alternating compressions"
+                    name = "Two-Person CPR",
+                    description = "CPR with two rescuers alternating compressions",
+                    estimatedSteps = 9
                 ),
                 VariantData(
                     id = "cpr_aed",
                     name = "CPR with AED",
-                    description = "CPR combined with Automated External Defibrillator"
-                ),
-                VariantData(
-                    id = "cpr_no_aed",
-                    name = "CPR without AED",
-                    description = "Standard CPR when AED is not available"
+                    description = "CPR combined with Automated External Defibrillator",
+                    estimatedSteps = 10
                 )
             )
 
             "heimlich" -> listOf(
                 VariantData(
                     id = "heimlich_others",
-                    name = "Heimlich for Others",
-                    description = "Perform Heimlich maneuver on another person"
+                    name = "Heimlich for Others (Adult)",
+                    description = "Perform Heimlich maneuver on another adult",
+                    estimatedSteps = 6
                 ),
                 VariantData(
                     id = "heimlich_self",
                     name = "Self Heimlich",
-                    description = "Perform Heimlich maneuver on yourself"
+                    description = "Perform Heimlich maneuver on yourself when alone",
+                    estimatedSteps = 4
                 )
             )
 
             "bandaging" -> listOf(
                 VariantData(
-                    id = "bandaging_triangular",
-                    name = "Triangular Bandaging",
-                    description = "Using triangular bandages for slings and wounds"
+                    id = "bandaging_head",
+                    name = "Head Bandaging",
+                    description = "Triangular bandage technique for head wounds",
+                    estimatedSteps = 5
                 ),
                 VariantData(
-                    id = "bandaging_circular",
-                    name = "Circular Bandaging",
-                    description = "Roller bandage technique for limbs and joints"
+                    id = "bandaging_hand",
+                    name = "Hand/Wrist Bandaging",
+                    description = "Figure-8 bandaging for hand and wrist injuries",
+                    estimatedSteps = 7
+                ),
+                VariantData(
+                    id = "bandaging_arm_sling",
+                    name = "Arm Sling",
+                    description = "Triangular bandage arm sling for arm injuries",
+                    estimatedSteps = 6
                 )
             )
 
@@ -162,6 +172,7 @@ class ProtocolVariantViewModel @Inject constructor(
     private data class VariantData(
         val id: String,
         val name: String,
-        val description: String
+        val description: String,
+        val estimatedSteps: Int
     )
 }

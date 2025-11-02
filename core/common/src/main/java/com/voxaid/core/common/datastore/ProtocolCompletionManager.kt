@@ -27,6 +27,8 @@ private val Context.completionDataStore: DataStore<Preferences> by preferencesDa
 /**
  * Manages protocol completion state and unlocking logic.
  *
+ * Updated: New variant IDs for bandaging protocols
+ *
  * Storage Keys:
  * - "protocol_completed_{variantId}": Boolean (completion status)
  * - "protocol_completed_at_{variantId}": Long (completion timestamp)
@@ -45,17 +47,22 @@ class ProtocolCompletionManager @Inject constructor(
 
         /**
          * All available protocol variants in the app.
-         * Used for calculating completion statistics.
+         * Updated with new bandaging variants.
          */
         private val ALL_VARIANTS = listOf(
+            // CPR variants
             "cpr_1person",
             "cpr_2person",
             "cpr_aed",
-            "cpr_no_aed",
+
+            // Heimlich variants
             "heimlich_others",
             "heimlich_self",
-            "bandaging_triangular",
-            "bandaging_circular"
+
+            // Bandaging variants (updated)
+            "bandaging_head",
+            "bandaging_hand",
+            "bandaging_arm_sling"
         )
     }
 

@@ -1,10 +1,12 @@
 package com.voxaid.feature.instruction.components
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -15,7 +17,9 @@ import com.voxaid.core.design.theme.VoxAidTheme
 /**
  * Card displaying a single instruction step.
  * Adapts styling for emergency vs instructional mode.
- * Now uses GIF animations instead of Lottie.
+ *
+ * Updated: Removed detailed instructions list for Learning Mode.
+ * Tips and notes are now included in the critical_warning field.
  */
 @Composable
 fun StepCard(
@@ -79,30 +83,6 @@ fun StepCard(
 
             Spacer(modifier = Modifier.height(if (isEmergencyMode) 16.dp else 12.dp))
 
-            // Critical warning if present
-            step.criticalWarning?.let { warning ->
-                Card(
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.error
-                    ),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text(
-                        text = "⚠️ $warning",
-                        style = if (isEmergencyMode) {
-                            MaterialTheme.typography.titleMedium
-                        } else {
-                            MaterialTheme.typography.bodyLarge
-                        },
-                        color = MaterialTheme.colorScheme.onError,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(16.dp)
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(16.dp))
-            }
-
             // Main description
             Text(
                 text = step.description,
@@ -123,50 +103,50 @@ fun StepCard(
                 }
             )
 
-            // Detailed instructions
-            if (step.detailedInstructions.isNotEmpty() && !isEmergencyMode) {
+            // Critical warning/Tips (displayed for both modes)
+            // Critical warning/Tips (displayed for both modes)
+            step.criticalWarning?.let { warning ->
                 Spacer(modifier = Modifier.height(16.dp))
 
+                val borderColor = if (warning.startsWith("Tip:"))
+                    MaterialTheme.colorScheme.primary
+                else
+                    MaterialTheme.colorScheme.error
+
                 Card(
+                    modifier = Modifier.fillMaxWidth(),
                     colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.primaryContainer
-                    )
+                        containerColor = MaterialTheme.colorScheme.surface
+                    ),
+                    border = BorderStroke(2.dp, borderColor),
+                    shape = MaterialTheme.shapes.medium
                 ) {
-                    Column(
-                        modifier = Modifier.padding(16.dp)
+                    Row(
+                        modifier = Modifier.padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = "Detailed Steps:",
-                            style = MaterialTheme.typography.titleSmall,
-                            fontWeight = FontWeight.SemiBold,
-                            color = MaterialTheme.colorScheme.onPrimaryContainer
+                            text = if (warning.startsWith("Tip:")) "💡" else "⚠️",
+                            style = if (isEmergencyMode) MaterialTheme.typography.titleLarge
+                            else MaterialTheme.typography.titleMedium,
+                            color = borderColor
                         )
 
-                        Spacer(modifier = Modifier.height(8.dp))
+                        Spacer(modifier = Modifier.width(8.dp))
 
-                        step.detailedInstructions.forEachIndexed { index, instruction ->
-                            Row(
-                                modifier = Modifier.padding(vertical = 4.dp)
-                            ) {
-                                Text(
-                                    text = "${index + 1}. ",
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.onPrimaryContainer,
-                                    fontWeight = FontWeight.Medium
-                                )
-                                Text(
-                                    text = instruction,
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.onPrimaryContainer,
-                                    modifier = Modifier.weight(1f)
-                                )
-                            }
-                        }
+                        Text(
+                            text = warning.removePrefix("Tip:").trim(),
+                            style = if (isEmergencyMode) MaterialTheme.typography.titleMedium
+                            else MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onSurface,
+                            fontWeight = if (warning.startsWith("Tip:")) FontWeight.Medium else FontWeight.Bold,
+                            modifier = Modifier.weight(1f)
+                        )
                     }
                 }
             }
 
-            // GIF Animation (replaces Lottie)
+            // GIF Animation
             step.animationResource?.let { animationRes ->
                 Spacer(modifier = Modifier.height(24.dp))
 
@@ -188,19 +168,33 @@ private fun StepCardPreview() {
         StepCard(
             step = Step(
                 stepNumber = 1,
-                title = "Check Responsiveness",
-                description = "Tap the person's shoulders and shout 'Are you okay?'",
-                detailedInstructions = listOf(
-                    "Gently shake the person's shoulders",
-                    "Speak loudly and clearly",
-                    "Look for any response or movement"
-                ),
-                voicePrompt = "Check if the person responds.",
+                title = "Survey the Scene",
+                description = "Tap the shoulder of the patient and shout 'Are you okay?' to see if they are responding.",
+                voicePrompt = "Survey the scene. Tap the patient's shoulder and shout, Are you okay?",
                 animationResource = "cpr_check_response.json",
-                criticalWarning = "Do not move if spinal injury suspected"
+                criticalWarning = "Check if patient is conscious, breathing, and has a pulse. Only perform CPR for patients who are unconscious, not breathing, and have no pulse."
             ),
             isEmergencyMode = false,
-            totalSteps = 6
+            totalSteps = 9
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun StepCardWithTipPreview() {
+    VoxAidTheme {
+        StepCard(
+            step = Step(
+                stepNumber = 5,
+                title = "Position Your Hands",
+                description = "Make sure both your hands are locked on top of each other. Your shoulders should be directly over your hands and your elbows are locked.",
+                voicePrompt = "Lock both hands on top of each other.",
+                animationResource = "cpr_hand_position.json",
+                criticalWarning = "Tip: Your dominant hand should be on the bottom"
+            ),
+            isEmergencyMode = false,
+            totalSteps = 9
         )
     }
 }
@@ -211,15 +205,15 @@ private fun StepCardEmergencyPreview() {
     VoxAidTheme {
         StepCard(
             step = Step(
-                stepNumber = 4,
-                title = "Start Compressions",
-                description = "Push hard and fast, 100-120 per minute",
-                voicePrompt = "Start chest compressions.",
-                criticalWarning = "Compressions save lives. Don't stop!",
+                stepNumber = 6,
+                title = "Perform 30 Chest Compressions",
+                description = "Perform chest compressions with a rate of 100 to 120 per minute and count up until 30.",
+                voicePrompt = "Start chest compressions. Count to 30.",
+                criticalWarning = "Tip: Allow the chest to fully recoil or get back to its natural position between compressions",
                 animationResource = "cpr_compressions.json"
             ),
             isEmergencyMode = true,
-            totalSteps = 6
+            totalSteps = 9
         )
     }
 }

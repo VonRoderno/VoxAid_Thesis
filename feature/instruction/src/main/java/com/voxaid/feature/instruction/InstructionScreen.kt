@@ -2,7 +2,11 @@ package com.voxaid.feature.instruction
 
 import android.content.Intent
 import android.net.Uri
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -96,17 +100,25 @@ fun InstructionScreen(
                 }
             }
         },
-        containerColor = if (isEmergencyMode) {
-            MaterialTheme.colorScheme.errorContainer
-        } else {
-            MaterialTheme.colorScheme.background
-        }
+        containerColor = MaterialTheme.colorScheme.surface
     ) { paddingValues ->
+        val emergencyBorder = if (isEmergencyMode)
+            Modifier
+                .padding(paddingValues)
+                .border(
+                    width = 3.dp,
+                    color = MaterialTheme.colorScheme.error,
+                    shape = RoundedCornerShape(0.dp)
+                )
+                .background(MaterialTheme.colorScheme.error.copy(alpha = 0.05f))
+        else
+            Modifier.padding(paddingValues)
+
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues)
-        ) {
+                .then(emergencyBorder)
+        ){
             when (val state = uiState) {
                 is InstructionUiState.Loading -> {
                     CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
@@ -115,17 +127,21 @@ fun InstructionScreen(
                 is InstructionUiState.Success -> {
                     Column(modifier = Modifier.fillMaxSize()) {
 
-                        // Warning banner if present
+                        // Protocol-level warning banner
                         state.protocol.warning?.let { warning ->
-                            WarningBanner(warning)
+                            BorderedInfoBanner(
+                                text = warning,
+                                type = if (isEmergencyMode) BannerType.Warning else BannerType.Info,
+                                modifier = Modifier.padding(16.dp)
+                            )
                         }
 
-                        // Emergency-specific critical warning
+// Step-specific emergency warning
                         if (isEmergencyMode && state.currentStep.criticalWarning != null) {
-                            EmergencyBanner(
-                                message = state.currentStep.criticalWarning!!,
-                                type = EmergencyBannerType.Critical,
-                                modifier = Modifier.padding(16.dp)
+                            BorderedInfoBanner(
+                                text = state.currentStep.criticalWarning!!,
+                                type = BannerType.Critical,
+                                modifier = Modifier.padding(horizontal = 16.dp)
                             )
                         }
 
@@ -200,6 +216,50 @@ fun InstructionScreen(
     }
 }
 
+@Composable
+fun BorderedInfoBanner(
+    text: String,
+    type: BannerType,
+    modifier: Modifier = Modifier
+) {
+    val color = when (type) {
+        BannerType.Info -> MaterialTheme.colorScheme.primary
+        BannerType.Warning -> MaterialTheme.colorScheme.error
+        BannerType.Critical -> MaterialTheme.colorScheme.error
+    }
+
+    Card(
+        modifier = modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        border = BorderStroke(2.dp, color),
+        shape = RoundedCornerShape(8.dp)
+    ) {
+        Row(
+            modifier = Modifier.padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = when (type) {
+                    BannerType.Info -> "💡"
+                    BannerType.Warning -> "⚠️"
+                    BannerType.Critical -> "🚨"
+                },
+                color = color,
+                style = MaterialTheme.typography.titleMedium
+            )
+
+            Spacer(modifier = Modifier.width(8.dp))
+
+            Text(
+                text = text,
+                color = MaterialTheme.colorScheme.onSurface,
+                style = MaterialTheme.typography.bodyMedium
+            )
+        }
+    }
+}
+
+enum class BannerType { Info, Warning, Critical }
 @Composable
 private fun WarningBanner(warning: String) {
     Card(

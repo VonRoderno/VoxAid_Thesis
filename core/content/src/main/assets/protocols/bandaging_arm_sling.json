@@ -1,0 +1,63 @@
+{
+  "id": "bandaging_arm_sling",
+  "name": "Arm Sling",
+  "description": "Triangular bandage arm sling for arm injuries",
+  "category": "bleeding",
+  "estimated_duration_minutes": 4,
+  "warning": "For arm and shoulder injuries. Do not move arm if fracture is suspected.",
+  "emergency_notes": [
+    "Support the injured arm before applying sling",
+    "Check circulation every 10 minutes",
+    "Seek medical attention for fractures"
+  ],
+  "steps": [
+    {
+      "step_number": 1,
+      "title": "Support the Arm",
+      "description": "Ask the victim to support the injured arm with their other arm.",
+      "voice_prompt": "Have the victim support their injured arm with their other hand.",
+      "duration_seconds": 5
+    },
+    {
+      "step_number": 2,
+      "title": "Slide Bandage Under Arm",
+      "description": "Using the triangular bandage, slide it underneath the arm up to the shoulder.",
+      "voice_prompt": "Slide the triangular bandage under the injured arm up to the shoulder.",
+      "animation_resource": "bandage_triangular_position.json",
+      "duration_seconds": 10
+    },
+    {
+      "step_number": 3,
+      "title": "Bring Over Shoulder",
+      "description": "Put the lower end of the bandage onto the other shoulder.",
+      "voice_prompt": "Bring the lower end of the bandage up and over the opposite shoulder.",
+      "animation_resource": "bandage_triangular_tie.json",
+      "duration_seconds": 10
+    },
+    {
+      "step_number": 4,
+      "title": "Tie with Square Knot",
+      "description": "Tie the two ends using the square knot.",
+      "voice_prompt": "Tie the two ends together at the shoulder using a square knot.",
+      "animation_resource": "bandage_triangular_tie.json",
+      "duration_seconds": 10,
+      "critical_warning": "To perform a square knot: hold the ends with each hand, put the right end over the left and tie, then put the left end over the right and tie"
+    },
+    {
+      "step_number": 5,
+      "title": "Secure the Edge",
+      "description": "Make sure that the edge of the bandage is secured by tucking it in and adjust the bandage so it supports the arm all the way to the end of their little finger.",
+      "voice_prompt": "Tuck in the edge of the bandage and adjust so it supports the arm to the end of the little finger.",
+      "animation_resource": "bandage_triangular_secure.json",
+      "duration_seconds": 15
+    },
+    {
+      "step_number": 6,
+      "title": "Check Circulation",
+      "description": "Check the circulation in their fingertips every 10 minutes. Press their nail for five seconds until it turns pale, then release to see if the color returns within two seconds.",
+      "voice_prompt": "Check fingertip circulation every 10 minutes by pressing the nail and watching color return.",
+      "duration_seconds": 10,
+      "critical_warning": "If color does not return within 2 seconds, loosen the bandage immediately"
+    }
+  ]
+}
