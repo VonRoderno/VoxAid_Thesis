@@ -1,9 +1,11 @@
 package com.voxaid.core.audio.model
 
 /**
-* Recognized voice intents from ASR.
-* Maps recognized speech to actionable commands.
-*/
+ * Recognized voice intents from ASR.
+ * Maps recognized speech to actionable commands.
+ *
+ * Updated: Added emergency-specific keywords (safe, clear, yes, no, etc.)
+ */
 sealed class VoiceIntent {
     data object NextStep : VoiceIntent()
     data object PreviousStep : VoiceIntent()
@@ -13,20 +15,51 @@ sealed class VoiceIntent {
     data object Help : VoiceIntent()
     data object Call911 : VoiceIntent()
 
+    // Emergency-specific intents
+    data object SafeClear : VoiceIntent() // "safe", "clear", "okay" for scene survey
+    data object Yes : VoiceIntent() // "yes", "yeah", "affirmative"
+    data object No : VoiceIntent() // "no", "nope", "negative"
+    data object Responsive : VoiceIntent() // "responsive", "conscious"
+    data object Unresponsive : VoiceIntent() // "unresponsive", "unconscious"
+    data object Alone : VoiceIntent() // "alone", "by myself"
+    data object NotAlone : VoiceIntent() // "not alone", "someone here"
+    data object Continue : VoiceIntent() // "continue", "keep going"
+    data object Stop : VoiceIntent() // "stop", "exhausted"
+
     data class GoToStep(val stepNumber: Int) : VoiceIntent()
     data class Unknown(val rawText: String) : VoiceIntent()
 
     companion object {
         /**
          * Parses raw recognized text into a VoiceIntent.
+         * Updated with emergency-specific keywords.
          */
         fun fromText(text: String): VoiceIntent {
             val normalized = text.lowercase().trim()
 
             return when {
+                // Emergency scene survey
+                normalized in listOf("safe", "clear", "okay", "ok", "safe to approach") -> SafeClear
+
+                // Yes/No responses
+                normalized in listOf("yes", "yeah", "yep", "yup", "affirmative", "correct") -> Yes
+                normalized in listOf("no", "nope", "nah", "negative", "incorrect") -> No
+
+                // Responsiveness check
+                normalized in listOf("responsive", "conscious", "awake", "responding") -> Responsive
+                normalized in listOf("unresponsive", "unconscious", "not responding", "no response") -> Unresponsive
+
+                // Alone status
+                normalized in listOf("alone", "by myself", "solo", "just me") -> Alone
+                normalized in listOf("not alone", "someone here", "help available", "partner here") -> NotAlone
+
+                // Continue/Stop
+                normalized in listOf("continue", "keep going", "go on", "proceed") -> Continue
+                normalized in listOf("stop", "exhausted", "tired", "can't continue", "rest") -> Stop
+
                 // Navigation intents
                 normalized.contains("next") ||
-                        normalized.contains("continue") ||
+                        normalized.contains("continue") && !normalized.contains("can't") ||
                         normalized.contains("go on") ||
                         normalized.contains("proceed") -> NextStep
 

@@ -3,7 +3,7 @@
   "name": "Self Heimlich Maneuver",
   "description": "Perform Heimlich on yourself when choking alone",
   "category": "airway",
-  "estimated_duration_minutes": 1,
+  "estimated_duration_minutes": 2,
   "warning": "Use when choking and alone. Act quickly - you may lose consciousness.",
   "emergency_notes": [
     "Try coughing first if you can",
@@ -13,36 +13,30 @@
   "steps": [
     {
       "step_number": 1,
-      "title": "Try Coughing",
-      "description": "Try coughing until you are free of the object you are being choked on.",
-      "voice_prompt": "Try to cough forcefully to dislodge the object.",
-      "duration_seconds": 10,
-      "critical_warning": "If you can cough, try this first before other methods"
+      "title": "If You Are Alone",
+      "description": "Do not drink water while choking because it can make the situation worse. If you can call, call for an emergency",
+      "voice_prompt": "Do NOT drink water. If you can, call nine one one for emergency.",
+      "animation_resource": "heimlich_yself_1.gif",
+      "duration_seconds": 8,
+      "critical_warning": "⚠️ Water can push the object deeper - do not drink"
     },
     {
       "step_number": 2,
-      "title": "Find a Hard Surface",
-      "description": "If the object is still inside you, find a hard surface at the height of your belly.",
-      "voice_prompt": "Find a hard surface like a table, chair, or kitchen countertop at belly height.",
-      "animation_resource": "heimlich_self_chair.json",
-      "duration_seconds": 5,
-      "critical_warning": "Examples: Table edge, chair back, kitchen countertop"
+      "title": "If You Can't Cough",
+      "description": "Other alternatives are table, Kitchen Countertop, and other hard surfaces that are in the same height as your belly.",
+      "voice_prompt": "Find a hard surface at belly height. Use a table, kitchen countertop, or chair back.",
+      "animation_resource": "heimlich_yself_2.gif",
+      "duration_seconds": 8,
+      "critical_warning": "Tip: The surface should be solid and at the same height as your navel"
     },
     {
       "step_number": 3,
-      "title": "Lean on Surface",
-      "description": "Lean on the surface and slam your belly as hard as you can.",
-      "voice_prompt": "Lean on the hard surface and thrust your belly against it as hard as you can.",
-      "animation_resource": "heimlich_self_thrust.json",
-      "duration_seconds": 5
-    },
-    {
-      "step_number": 4,
-      "title": "Repeat Until Clear",
-      "description": "Repeatedly slam your belly while coughing until you are free of the object.",
-      "voice_prompt": "Repeat thrusts while coughing until the object is dislodged.",
-      "animation_resource": "heimlich_self_thrust.json",
-      "critical_warning": "Continue until object is expelled or you can breathe. If you become unconscious, emergency services should perform CPR."
+      "title": "Slam Your Belly",
+      "description": "Make sure to slam as hard as you can take",
+      "voice_prompt": "Lean over the hard surface. Thrust your belly against it forcefully and repeatedly until the object is expelled.",
+      "animation_resource": "heimlich_yself_3.gif",
+      "duration_seconds": 15,
+      "critical_warning": "Use maximum force - your life depends on it. Continue until the object comes out or help arrives"
     }
   ]
 }

@@ -250,4 +250,103 @@ class ProtocolCompletionManager @Inject constructor(
     suspend fun hasCompletedAnyProtocol(): Boolean {
         return getUnlockedVariants().isNotEmpty()
     }
+
+    /**
+     * Checks if ALL variants of a protocol are completed.
+     * Required for unlocking Emergency Mode.
+     *
+     * @param protocolId The base protocol (e.g., "cpr", "heimlich", "bandaging")
+     * @return true if all variants completed, false otherwise
+     */
+    suspend fun isProtocolFullyCompleted(protocolId: String): Boolean {
+        val variants = getProtocolVariants(protocolId)
+
+        return variants.all { variantId ->
+            isVariantUnlocked(variantId)
+        }
+    }
+
+    /**
+     * Gets completion status for entire protocol.
+     *
+     * @param protocolId The base protocol
+     * @return ProtocolCompletionStatus with progress info
+     */
+    suspend fun getProtocolCompletionStatus(protocolId: String): ProtocolCompletionStatus {
+        val variants = getProtocolVariants(protocolId)
+
+        val completedVariants = variants.count { variantId ->
+            isVariantUnlocked(variantId)
+        }
+
+        return ProtocolCompletionStatus(
+            protocolId = protocolId,
+            totalVariants = variants.size,
+            completedVariants = completedVariants,
+            isFullyCompleted = completedVariants == variants.size,
+            completedVariantIds = variants.filter { isVariantUnlocked(it) }
+        )
+    }
+
+    /**
+     * Get all variants for a protocol.
+     * Helper method for protocol-level checking.
+     */
+    private fun getProtocolVariants(protocolId: String): List<String> {
+        return when (protocolId) {
+            "cpr" -> listOf(
+                "cpr_1person",
+                "cpr_2person",
+                "cpr_aed"
+            )
+            "heimlich" -> listOf(
+                "heimlich_others",
+                "heimlich_self"
+            )
+            "bandaging" -> listOf(
+                "bandaging_head",
+                "bandaging_hand",
+                "bandaging_arm_sling"
+            )
+            else -> emptyList()
+        }
+    }
+
+    /**
+     * Get protocol display names for UI.
+     */
+    fun getProtocolDisplayName(protocolId: String): String {
+        return when (protocolId) {
+            "cpr" -> "CPR (Cardiopulmonary Resuscitation)"
+            "heimlich" -> "Heimlich Maneuver"
+            "bandaging" -> "Wound Bandaging"
+            else -> protocolId
+        }
+    }
+
+    data class ProtocolCompletionStatus(
+        val protocolId: String,
+        val totalVariants: Int,
+        val completedVariants: Int,
+        val isFullyCompleted: Boolean,
+        val completedVariantIds: List<String>
+    ) {
+        /**
+         * Progress percentage (0-100).
+         */
+        val progressPercentage: Int
+            get() = if (totalVariants > 0) {
+                ((completedVariants.toFloat() / totalVariants) * 100).toInt()
+            } else 0
+
+        /**
+         * User-friendly status message.
+         */
+        val statusMessage: String
+            get() = when {
+                isFullyCompleted -> "Unlocked for Emergency Mode"
+                completedVariants > 0 -> "$completedVariants of $totalVariants variants completed"
+                else -> "Complete all variants to unlock Emergency Mode"
+            }
+    }
 }

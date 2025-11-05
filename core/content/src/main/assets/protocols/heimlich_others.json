@@ -3,7 +3,7 @@
   "name": "Heimlich for Others (Adult)",
   "description": "Perform Heimlich maneuver on a choking adult",
   "category": "airway",
-  "estimated_duration_minutes": 1,
+  "estimated_duration_minutes": 2,
   "warning": "Only use if person cannot cough, speak, or breathe. For adults only.",
   "emergency_notes": [
     "If person becomes unconscious, start CPR immediately",
@@ -13,55 +13,39 @@
   "steps": [
     {
       "step_number": 1,
-      "title": "Assess if They Can Cough",
-      "description": "If the person could cough, ask the person to cough if it can solve the choking.",
-      "voice_prompt": "Ask the person to cough if they are able to.",
-      "animation_resource": "heimlich_assess.json",
-      "duration_seconds": 5,
-      "critical_warning": "If person can cough or speak, encourage coughing - do not perform Heimlich yet"
+      "title": "If Someone is Choking",
+      "description": "Don't give them water because again, it can make things worse",
+      "voice_prompt": "Do NOT give water to a choking person. Ask if they are choking. Look for the universal choking sign.",
+      "animation_resource": "heimlich_other_1.gif",
+      "duration_seconds": 8,
+      "critical_warning": "⚠️ Water can make choking worse - never give water to someone who is choking"
     },
     {
       "step_number": 2,
-      "title": "Stand Behind the Person",
-      "description": "If the person can't cough, stand behind the person and put your arms around their belly.",
-      "voice_prompt": "Stand behind the person and wrap your arms around their waist.",
-      "animation_resource": "heimlich_position.json",
-      "duration_seconds": 5
+      "title": "If the Patient Can't Cough",
+      "description": "Quickly stand behind the person and follow the correct position",
+      "voice_prompt": "Stand behind the person. Wrap your arms around their waist. Position yourself slightly to the side.",
+      "animation_resource": "heimlich_other_2.gif",
+      "duration_seconds": 8,
+      "critical_warning": "Tip: Tell the person what you're about to do to help them stay calm"
     },
     {
       "step_number": 3,
-      "title": "Make a Fist",
-      "description": "Make a fist with one hand and clasp your other hand tightly around it.",
-      "voice_prompt": "Make a fist with one hand and clasp your other hand around it.",
-      "animation_resource": "heimlich_fist.json",
-      "duration_seconds": 5
+      "title": "Correct Hand Positioning",
+      "description": "Make sure that your hands and arms are below the ribs before thrusting.",
+      "voice_prompt": "Make a fist with one hand. Place it just above the navel, below the ribcage. Grasp your fist with your other hand.",
+      "animation_resource": "heimlich_other_3.gif",
+      "duration_seconds": 10,
+      "critical_warning": "Tip: Position must be below the ribs to avoid rib fractures and above the navel for effectiveness"
     },
     {
       "step_number": 4,
-      "title": "Position Your Fist",
-      "description": "Place the thumb side of your fist just below their ribcage and about two inches above their belly button.",
-      "voice_prompt": "Place your fist just below the ribcage, two inches above the belly button.",
-      "animation_resource": "heimlich_fist.json",
-      "duration_seconds": 5,
-      "critical_warning": "Correct positioning is crucial for effectiveness and safety"
-    },
-    {
-      "step_number": 5,
-      "title": "Perform 5 Thrusts",
-      "description": "Sharply and quickly thrust your hands inward and upward five times.",
-      "voice_prompt": "Perform five quick, forceful inward and upward thrusts.",
-      "animation_resource": "heimlich_thrust.json",
-      "duration_seconds": 10,
-      "critical_warning": "Use significant force - you need to expel the object"
-    },
-    {
-      "step_number": 6,
-      "title": "Repeat or Start CPR",
-      "description": "Repeat this process until you free the object stuck in their windpipe or person becomes unconscious. If the person becomes unconscious, start CPR.",
-      "voice_prompt": "Continue thrusts until object is expelled. If person becomes unconscious, immediately start CPR.",
-      "animation_resource": "heimlich_check.json",
-      "critical_warning": "If person becomes unconscious, lay them down and begin CPR immediately"
+      "title": "Thrusting",
+      "description": "Thrust the belly of the person choking repeatedly until they are free from the object",
+      "voice_prompt": "Perform quick, forceful inward and upward thrusts. Repeat until the object is expelled or person becomes unconscious.",
+      "animation_resource": "heimlich_other_4.gif",
+      "duration_seconds": 15,
+      "critical_warning": "⚠️ If person becomes unconscious, lay them down and immediately start CPR"
     }
   ]
 }
-

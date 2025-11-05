@@ -1,0 +1,214 @@
+{
+  "id": "cpr_learning",
+  "name": "CPR (Cardiopulmonary Resuscitation)",
+  "description": "Complete CPR training for learning mode",
+  "category": "cardiac",
+  "estimated_duration_minutes": 15,
+  "metronome_bpm": 110,
+  "warning": "This is for educational purposes only. Always call emergency services first in real situations.",
+  "emergency_notes": [
+    "Always survey the scene first",
+    "Check consciousness, breathing, and pulse",
+    "Only perform CPR if all three are absent",
+    "Continue until emergency services arrive"
+  ],
+  "steps": [
+    {
+      "step_number": 1,
+      "title": "Survey the Scene",
+      "description": "When you arrive at the scene, survey the scene and the environment. Also ask if there is an AED present at the scene.",
+      "voice_prompt": "Survey the scene and check if it is safe. Ask if there is an A E D available.",
+      "animation_resource": "SurveyGIF.gif",
+      "duration_seconds": 10
+    },
+    {
+      "step_number": 2,
+      "title": "Check the Patient",
+      "description": "Always remember to shout and make your voice louder",
+      "voice_prompt": "Tap the patient's shoulder and shout loudly: Are you okay?",
+      "animation_resource": "cpr_1.gif",
+      "duration_seconds": 5,
+      "critical_warning": "Tip: Make your voice loud and clear to check for response"
+    },
+    {
+      "step_number": 3,
+      "title": "Call Emergency",
+      "description": "Ask someone to call emergency for you but if you are alone you should call it yourself",
+      "voice_prompt": "Call emergency services or ask someone nearby to call nine one one.",
+      "animation_resource": "CallEmergency.gif",
+      "duration_seconds": 10,
+      "critical_warning": "If alone, call 911 yourself before starting CPR"
+    },
+    {
+      "step_number": 4,
+      "title": "Check Patient",
+      "description": "Check for the three determining factors such as consciousness, breathing, and pulse",
+      "voice_prompt": "Check for three things: consciousness, breathing, and pulse. You have 10 seconds.",
+      "animation_resource": "cpr_2.gif",
+      "duration_seconds": 10,
+      "critical_warning": "Complete this check within 10 seconds"
+    },
+    {
+      "step_number": 5,
+      "title": "Quick Note",
+      "description": "Remember to check all three and only perform CPR to a person without all three",
+      "voice_prompt": "Only perform C P R if the person has no consciousness, no breathing, and no pulse.",
+      "animation_resource": "CPR Checklist.gif",
+      "duration_seconds": 8,
+      "critical_warning": "All three must be absent: ✗ Consciousness ✗ Breathing ✗ Pulse"
+    },
+    {
+      "step_number": 6,
+      "title": "If at least one (Breathing, Pulse, Consciousness) is present",
+      "description": "Remember to not perform CPR because it might be dangerous. Wait for the emergency patiently.",
+      "voice_prompt": "If the person has breathing, pulse, or consciousness, do NOT perform C P R. Wait for emergency services.",
+      "animation_resource": "DontCPR.gif",
+      "duration_seconds": 8,
+      "critical_warning": "Performing CPR on a responsive person can cause serious harm"
+    },
+    {
+      "step_number": 7,
+      "title": "If all of the checklist is X",
+      "description": "Introduce yourself as the CPR giver and ask around if there are any relatives of the patient. Ask if the patient has a DNR (If yes, don't perform CPR). Most importantly, ask consent and only perform CPR if consent is given.",
+      "voice_prompt": "Introduce yourself. Ask if there are relatives present. Check for D N R. Ask for consent to perform C P R.",
+      "animation_resource": "TIPSGIF.gif",
+      "duration_seconds": 15,
+      "critical_warning": "Tip: DNR means Do Not Resuscitate - you cannot perform CPR if one exists"
+    },
+    {
+      "step_number": 8,
+      "title": "Check Surroundings",
+      "description": "Survey the scene again and check if it is safe to perform CPR",
+      "voice_prompt": "Survey the scene one more time. Make sure it is safe to perform C P R.",
+      "animation_resource": "SurveyGIF.gif",
+      "duration_seconds": 5,
+      "critical_warning": "Tip: Your safety comes first - don't perform CPR in dangerous locations"
+    },
+    {
+      "step_number": 9,
+      "title": "Start Performing CPR",
+      "description": "Always be mindful of your posture because giving CPR could also be dangerous to the one performing it. Make sure to kneel and have a strong posture.",
+      "voice_prompt": "Kneel beside the patient. Keep your back straight and maintain a strong posture.",
+      "animation_resource": "cpr_pos_1.gif",
+      "duration_seconds": 8,
+      "critical_warning": "Tip: Poor posture can cause back injury during prolonged CPR"
+    },
+    {
+      "step_number": 10,
+      "title": "Hand Position",
+      "description": "Your dominant hand is the one you are more comfortable with.",
+      "voice_prompt": "Place your dominant hand on the center of the chest. Put your other hand on top and interlock fingers.",
+      "animation_resource": "cpr_pos_2.gif",
+      "duration_seconds": 8,
+      "critical_warning": "Tip: Your dominant hand should be on the bottom"
+    },
+    {
+      "step_number": 11,
+      "title": "Shoulder and Elbow Position",
+      "description": "Make sure to follow the correct posture to give quality chest compressions",
+      "voice_prompt": "Position your shoulders directly over your hands. Lock your elbows straight.",
+      "animation_resource": "cpr_pos_3.gif",
+      "duration_seconds": 8,
+      "critical_warning": "Tip: Locked elbows and shoulders over hands provide maximum compression efficiency"
+    },
+    {
+      "step_number": 12,
+      "title": "Chest Compression",
+      "description": "Allowing the chest to recoil makes sure the heart can completely refill with blood",
+      "voice_prompt": "Compress the chest at least 2 inches deep. Push hard and fast at 100 to 120 compressions per minute. Allow full chest recoil between compressions.",
+      "animation_resource": "cpr_proper.gif",
+      "duration_seconds": 30,
+      "critical_warning": "Tip: Full chest recoil is critical - let the chest rise completely between compressions"
+    },
+    {
+      "step_number": 13,
+      "title": "Rescue Breaths (Optional)",
+      "description": "This part is optional but if you want to you can.",
+      "voice_prompt": "After 30 compressions, you may give 2 rescue breaths. This is optional. Hands-only C P R is also effective.",
+      "animation_resource": "cpr_rescuebreaths.gif",
+      "duration_seconds": 10,
+      "critical_warning": "Tip: Due to COVID-19, hands-only CPR is recommended for untrained rescuers"
+    },
+    {
+      "step_number": 14,
+      "title": "Check Again After 1 Cycle",
+      "description": "As per the PHA 2024 update on CPR you need to check all three within 10 seconds",
+      "voice_prompt": "After one cycle, quickly check consciousness, breathing, and pulse within 10 seconds.",
+      "animation_resource": "cpr_checkagain.gif",
+      "duration_seconds": 10,
+      "critical_warning": "PHA 2024 Update: Check all three factors within 10 seconds"
+    },
+    {
+      "step_number": 15,
+      "title": "If the Person is Now Responsive",
+      "description": "Stop the CPR and wait for the emergency response",
+      "voice_prompt": "If the person shows signs of life, stop C P R. Monitor them and wait for emergency services.",
+      "animation_resource": "DontCPR.gif",
+      "duration_seconds": 8,
+      "critical_warning": "Place responsive person in recovery position and monitor breathing"
+    },
+    {
+      "step_number": 16,
+      "title": "If the Person is Still Unresponsive",
+      "description": "Perform another cycle of chest compressions",
+      "voice_prompt": "If still unresponsive, continue C P R. Perform another cycle of 30 compressions.",
+      "animation_resource": "cpr_proper.gif",
+      "duration_seconds": 30,
+      "critical_warning": "Continue CPR until emergency services arrive or person shows signs of life"
+    },
+    {
+      "step_number": 17,
+      "title": "Two-Person CPR",
+      "description": "If you have a partner or someone who knows how to perform CPR besides you, make sure that your partner is ready before the end of the 5th compression cycle. The switch should be quick.",
+      "voice_prompt": "If another trained person is available, switch roles every 5 cycles or 2 minutes to prevent fatigue. Switch quickly in less than 5 seconds.",
+      "animation_resource": "cpr_switch.gif",
+      "duration_seconds": 10,
+      "critical_warning": "Tip: Rescuer fatigue reduces compression quality - switch regularly"
+    },
+    {
+      "step_number": 18,
+      "title": "If There is an AED Present at the Scene",
+      "description": "Follow the instructions of the voice in the AED",
+      "voice_prompt": "If an A E D is available, turn it on immediately. Follow the voice instructions carefully.",
+      "animation_resource": "aed_1.gif",
+      "duration_seconds": 8,
+      "critical_warning": "AEDs provide step-by-step voice instructions - follow them exactly"
+    },
+    {
+      "step_number": 19,
+      "title": "Take Off the Clothes",
+      "description": "Before using the AED, take off the upper clothing of the victim",
+      "voice_prompt": "Remove or cut away clothing from the chest. The chest must be bare and dry.",
+      "animation_resource": "aed_2.gif",
+      "duration_seconds": 8,
+      "critical_warning": "Tip: Dry the chest if wet - AED pads won't stick properly to wet skin"
+    },
+    {
+      "step_number": 20,
+      "title": "Put the Pads",
+      "description": "Read the instructions on the pads or in the AED and put the pads in the correct places",
+      "voice_prompt": "Place one pad on the upper right chest. Place the other pad on the lower left chest. Follow the diagram on the pads.",
+      "animation_resource": "aed_3.gif",
+      "duration_seconds": 10,
+      "critical_warning": "Tip: Pads must stick firmly to bare skin - remove chest hair if necessary"
+    },
+    {
+      "step_number": 21,
+      "title": "AED Shock",
+      "description": "The AED can deliver shocks and if needed, make sure no one touches the body. Shout Clear. Some AED delivers the shock automatically, but some AED needs to be controlled manually to deliver the shock.",
+      "voice_prompt": "If shock is advised, shout CLEAR and make sure no one is touching the patient. Press the shock button if required.",
+      "animation_resource": "aed_4.gif",
+      "duration_seconds": 10,
+      "critical_warning": "⚠️ STAND CLEAR - Never touch the patient during shock delivery"
+    },
+    {
+      "step_number": 22,
+      "title": "Philippine Red Cross Contact Information",
+      "description": "(+63 2) 8790-2365\n(+63 2) 8790-2300 loc. 934/933\n(+63 917) 806-8520\nsafetytraining@redcross.org.ph",
+      "voice_prompt": "For professional C P R training, contact Philippine Red Cross.",
+      "animation_resource": "Disclaimer.gif",
+      "duration_seconds": 10,
+      "critical_warning": "Tip: Get certified! Professional training saves lives"
+    }
+  ]
+}

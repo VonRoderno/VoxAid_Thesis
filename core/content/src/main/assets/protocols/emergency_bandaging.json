@@ -1,0 +1,111 @@
+{
+  "id": "emergency_bandaging",
+  "name": "Emergency Wound Care",
+  "description": "Fast-access bleeding control",
+  "category": "bleeding",
+  "required_learning_variants": ["bandaging_head", "bandaging_hand", "bandaging_arm_sling"],
+  "warning": "⚠️ For severe bleeding, call 911 immediately",
+  "emergency_notes": [
+    "Apply direct pressure immediately",
+    "Elevate wound if possible",
+    "Do not remove embedded objects"
+  ],
+  "initial_step_id": "assess_bleeding",
+  "steps": {
+    "assess_bleeding": {
+      "step_type": "popup",
+      "title": "Assess Bleeding Severity",
+      "description": "Is bleeding severe or pulsating?\n\nYES = Call 911 first\nNO = Continue with first aid",
+      "voice_prompt": "Is the bleeding severe or pulsating? Say YES or NO.",
+      "animation_resource": "bandage_assess.json",
+      "yes_next_step_id": "call_911_severe",
+      "no_next_step_id": "apply_pressure",
+      "yes_keywords": ["yes", "severe", "heavy", "pulsating"],
+      "no_keywords": ["no", "minor", "light"]
+    },
+
+    "call_911_severe": {
+      "step_type": "instruction",
+      "title": "Call 911 Immediately",
+      "description": "Severe bleeding detected.\n\nCall 911 now.\n\nThen apply direct pressure while waiting.",
+      "voice_prompt": "Call nine one one immediately. Then apply direct pressure.",
+      "animation_resource": "CallEmergency.gif",
+      "duration_secondsseconds": 10,
+      "critical_warning": "⚠️ CALL 911 FOR SEVERE BLEEDING",
+      "next_step_id": "apply_pressure"
+    },
+    "apply_pressure": {
+      "step_type": "timed",
+      "title": "Apply Direct Pressure",
+      "description": "Use clean cloth or gauze.\n\nApply firm, direct pressure.\n\nHold for at least 5 minutes.\n\nDO NOT check if bleeding stopped.",
+      "voice_prompt": "Apply firm direct pressure to the wound. Hold for at least 5 minutes without releasing.",
+      "animation_resource": "bandage_pressure.json",
+      "duration_seconds": 300,
+      "critical_warning": "Do NOT remove cloth if soaked - add more on top",
+      "next_step_id": "check_bleeding_stopped"
+    },
+
+    "check_bleeding_stopped": {
+      "step_type": "popup",
+      "title": "Has Bleeding Stopped?",
+      "description": "Check carefully.\n\nYES = Continue to clean wound\nNO = Apply pressure for 5 more minutes",
+      "voice_prompt": "Has the bleeding stopped? Say YES or NO.",
+      "animation_resource": "bandage_pressure.json",
+      "yes_next_step_id": "clean_wound",
+      "no_next_step_id": "apply_pressure",
+      "yes_keywords": ["yes", "stopped", "controlled"],
+      "no_keywords": ["no", "still bleeding", "continuing"]
+    },
+
+    "clean_wound": {
+      "step_type": "instruction",
+      "title": "Clean the Wound",
+      "description": "Rinse gently with clean water.\n\nRemove visible dirt.\n\nPat dry with clean cloth.",
+      "voice_prompt": "Gently rinse the wound with clean water and pat dry.",
+      "animation_resource": "bandage_clean.json",
+      "duration_seconds": 30,
+      "next_step_id": "choose_bandage_type"
+    },
+
+    "choose_bandage_type": {
+      "step_type": "popup",
+      "title": "Where is the Wound?",
+      "description": "HEAD = Head wound\nHAND = Hand/wrist wound\nARM = Arm injury needing sling\nOTHER = Other location",
+      "voice_prompt": "Say HEAD, HAND, ARM, or OTHER based on wound location.",
+      "animation_resource": "bandage_apply.json",
+      "yes_next_step_id": "bandage_head",
+      "no_next_step_id": "bandage_general",
+      "yes_keywords": ["head"],
+      "no_keywords": ["hand", "arm", "other"]
+    },
+
+    "bandage_head": {
+      "step_type": "instruction",
+      "title": "Head Bandaging",
+      "description": "Use triangular bandage.\n\nPlace long edge over forehead.\n\nCross tails at back.\n\nTie in front.",
+      "voice_prompt": "Use a triangular bandage. Place the long edge over the forehead and tie in front.",
+      "animation_resource": "bandage_triangular_tie.json",
+      "duration_seconds": 30,
+      "next_step_id": "bandaging_complete"
+    },
+
+    "bandage_general": {
+      "step_type": "instruction",
+      "title": "Apply Bandage",
+      "description": "Cover wound with sterile gauze.\n\nSecure with tape or bandage.\n\nNot too tight - check circulation.",
+      "voice_prompt": "Cover the wound with sterile bandage. Secure it but not too tightly.",
+      "animation_resource": "bandage_apply.json",
+      "duration_seconds": 30,
+      "next_step_id": "bandaging_complete"
+    },
+
+    "bandaging_complete": {
+      "step_type": "terminal",
+      "title": "Monitor and Seek Care",
+      "description": "Bandaging complete.\n\nWatch for signs of infection:\n• Redness\n• Swelling\n• Pus\n• Fever\n\nSeek medical attention if these occur.",
+      "voice_prompt": "Bandaging complete. Monitor for infection and seek medical care if needed.",
+      "animation_resource": "bandage_monitor.json",
+      "outcome_type": "success"
+    }
+  }
+}

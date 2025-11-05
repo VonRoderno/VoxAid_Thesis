@@ -1,0 +1,88 @@
+{
+  "id": "emergency_heimlich",
+  "name": "Emergency Heimlich Maneuver",
+  "description": "Fast-access choking response",
+  "category": "airway",
+  "required_learning_variants": ["heimlich_self", "heimlich_others"],
+  "warning": "⚠️ EMERGENCY MODE - Act quickly, choking is life-threatening",
+  "emergency_notes": [
+    "Assess if person can cough",
+    "Use forceful thrusts",
+    "Continue until object expelled"
+  ],
+  "initial_step_id": "assess_choking",
+  "steps": {
+    "assess_choking": {
+      "step_type": "popup",
+      "title": "Is the Person Choking?",
+      "description": "Can they cough or speak?\n\nYES = Encourage coughing\nNO = Perform Heimlich",
+      "voice_prompt": "Can the person cough or speak? Say YES or NO.",
+      "animation_resource": "heimlich_other_1.gif",
+      "yes_next_step_id": "encourage_coughing",
+      "no_next_step_id": "check_self_or_other",
+      "yes_keywords": ["yes", "coughing", "speaking"],
+      "no_keywords": ["no", "silent", "cant"]
+    },
+
+    "encourage_coughing": {
+      "step_type": "terminal",
+      "title": "Encourage Coughing",
+      "description": "Person can still cough.\n\nEncourage them to cough forcefully.\n\nStand by to help if needed.",
+      "voice_prompt": "Encourage them to cough. Monitor closely.",
+      "animation_resource": "heimlich_other_1.gif",
+      "outcome_type": "success"
+    },
+
+    "check_self_or_other": {
+      "step_type": "popup",
+      "title": "Self or Other Person?",
+      "description": "Are you choking or helping someone else?\n\nSELF = You are choking\nOTHER = Helping another person",
+      "voice_prompt": "Say SELF if you are choking. Say OTHER if helping someone else.",
+      "animation_resource": "heimlich_yself_1.gif",
+      "yes_next_step_id": "self_heimlich",
+      "no_next_step_id": "other_heimlich",
+      "yes_keywords": ["self", "me", "myself"],
+      "no_keywords": ["other", "them", "someone"]
+    },
+
+    "self_heimlich": {
+      "step_type": "instruction",
+      "title": "Self Heimlich",
+      "description": "Find a hard surface at belly height.\n\nLean forward and thrust belly against it.\n\nRepeat forcefully.",
+      "voice_prompt": "Find a table or counter. Lean on it and thrust your belly forcefully.",
+      "animation_resource": "heimlich_yself_3.gif",
+      "duration_seconds": 30,
+      "critical_warning": "⚠️ Use maximum force - your life depends on it",
+      "next_step_id": "self_heimlich_terminal"
+    },
+
+    "self_heimlich_terminal": {
+      "step_type": "terminal",
+      "title": "Continue Until Clear",
+      "description": "Keep thrusting until object is expelled.\n\nIf you become unconscious, someone should call 911 and perform CPR.",
+      "voice_prompt": "Continue until the object comes out.",
+      "animation_resource": "heimlich_yself_3.gif",
+      "outcome_type": "external_help"
+    },
+
+    "other_heimlich": {
+      "step_type": "instruction",
+      "title": "Heimlich for Others",
+      "description": "Stand behind person.\n\nMake fist below ribs.\n\nGrasp fist with other hand.\n\nThrust inward and upward forcefully.",
+      "voice_prompt": "Stand behind them. Make a fist below their ribs. Thrust inward and upward with force.",
+      "animation_resource": "heimlich_other_4.gif",
+      "duration_seconds": 20,
+      "critical_warning": "⚠️ If person becomes unconscious, start CPR immediately",
+      "next_step_id": "other_heimlich_terminal"
+    },
+
+    "other_heimlich_terminal": {
+      "step_type": "terminal",
+      "title": "Continue Until Clear",
+      "description": "Repeat thrusts until object is expelled.\n\nIf person becomes unconscious, lay them down and start CPR.",
+      "voice_prompt": "Continue thrusts until object comes out. If unconscious, start C P R.",
+      "animation_resource": "heimlich_other_4.gif",
+      "outcome_type": "success"
+    }
+  }
+}

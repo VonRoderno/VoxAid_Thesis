@@ -7,6 +7,8 @@ import com.voxaid.core.design.R
  * Central configuration for all animations in VoxAid.
  * Maps protocol steps to their corresponding GIF resources.
  *
+ * Updated: Added new GIF mappings for restructured CPR and Heimlich protocols
+ *
  * **How to Add New GIFs:**
  * 1. Place GIF in `app/src/main/res/raw/`
  * 2. Add entry to appropriate protocol map
@@ -25,111 +27,98 @@ import com.voxaid.core.design.R
 object AnimationConfig {
 
     /**
-     * CPR protocol animations.
-     * Resource IDs will be added when actual GIF files are provided.
+     * CPR Learning Mode animations - New 21-step flow
      */
     object CPR {
-        // Example: R.raw.anim_cpr_check_response
-        @RawRes val CHECK_RESPONSE: Int = R.raw.cpr_pos_1
-
-        // Example: R.raw.anim_cpr_call_911
-        @RawRes val CALL_911: Int? = null
-
-        // Example: R.raw.anim_cpr_hand_position
-        @RawRes val HAND_POSITION: Int? = null
-
-        // Example: R.raw.anim_cpr_compressions
-        @RawRes val COMPRESSIONS: Int? = null
-
-        // Example: R.raw.anim_cpr_rescue_breaths
-        @RawRes val RESCUE_BREATHS: Int? = null
-
-        // Example: R.raw.anim_cpr_cycle
-        @RawRes val CYCLE: Int? = null
-
-        // Example: R.raw.anim_cpr_aed_power_on
-        @RawRes val AED_POWER_ON: Int? = null
-
-        // Example: R.raw.anim_cpr_aed_pad_placement
-        @RawRes val AED_PAD_PLACEMENT: Int? = null
+        @RawRes
+        val SURVEY: Int? = null // SurveyGIF.gif
+        @RawRes
+        val CHECK_PATIENT_1: Int = R.raw.cpr_pos_1 // cpr_1.gif (using existing as placeholder)
+        @RawRes
+        val CALL_EMERGENCY: Int? = null // CallEmergency.gif
+        @RawRes
+        val CHECK_PATIENT_2: Int? = null // cpr_2.gif
+        @RawRes
+        val CPR_CHECKLIST: Int? = null // CPR Checklist.gif
+        @RawRes
+        val DONT_CPR: Int? = null // DontCPR.gif
+        @RawRes
+        val TIPS: Int? = null // TIPSGIF.gif
+        @RawRes
+        val POSITION_1: Int = R.raw.cpr_pos_1 // cpr_pos_1.gif
+        @RawRes
+        val POSITION_2: Int? = null // cpr_pos_2.gif
+        @RawRes
+        val POSITION_3: Int? = null // cpr_pos_3.gif
+        @RawRes
+        val CPR_PROPER: Int? = null // cpr_proper.gif
+        @RawRes
+        val RESCUE_BREATHS: Int? = null // cpr_rescuebreaths.gif
+        @RawRes
+        val CHECK_AGAIN: Int? = null // cpr_checkagain.gif
+        @RawRes
+        val CPR_SWITCH: Int? = null // cpr_switch.gif
+        @RawRes
+        val AED_1: Int? = null // aed_1.gif
+        @RawRes
+        val AED_2: Int? = null // aed_2.gif
+        @RawRes
+        val AED_3: Int? = null // aed_3.gif
+        @RawRes
+        val AED_4: Int? = null // aed_4.gif
+        @RawRes
+        val DISCLAIMER: Int? = null // Disclaimer.gif
     }
 
     /**
-     * Heimlich maneuver animations.
+     * Heimlich maneuver animations - Updated
      */
     object Heimlich {
-        // Example: R.raw.anim_heimlich_assess
-        @RawRes val ASSESS: Int? = null
+        // Self Heimlich
+        @RawRes
+        val SELF_1: Int? = null // heimlich_yself_1.gif
+        @RawRes
+        val SELF_2: Int? = null // heimlich_yself_2.gif
+        @RawRes
+        val SELF_3: Int? = null // heimlich_yself_3.gif
 
-        // Example: R.raw.anim_heimlich_position
-        @RawRes val POSITION: Int? = null
-
-        // Example: R.raw.anim_heimlich_fist
-        @RawRes val FIST: Int? = null
-
-        // Example: R.raw.anim_heimlich_thrust
-        @RawRes val THRUST: Int? = null
-
-        // Example: R.raw.anim_heimlich_check
-        @RawRes val CHECK: Int? = null
-
-        // Example: R.raw.anim_heimlich_self_fist
-        @RawRes val SELF_FIST: Int? = null
-
-        // Example: R.raw.anim_heimlich_self_thrust
-        @RawRes val SELF_THRUST: Int? = null
-
-        // Example: R.raw.anim_heimlich_self_chair
-        @RawRes val SELF_CHAIR: Int? = null
+        // Heimlich for Others
+        @RawRes
+        val OTHER_1: Int? = null // heimlich_other_1.gif
+        @RawRes
+        val OTHER_2: Int? = null // heimlich_other_2.gif
+        @RawRes
+        val OTHER_3: Int? = null // heimlich_other_3.gif
+        @RawRes
+        val OTHER_4: Int? = null // heimlich_other_4.gif
     }
 
     /**
-     * Bandaging animations.
+     * Bandaging animations (unchanged, awaiting new content)
      */
     object Bandaging {
-        // Example: R.raw.anim_bandage_assess
-        @RawRes val ASSESS: Int? = null
-
-        // Example: R.raw.anim_bandage_pressure
-        @RawRes val PRESSURE: Int? = null
-
-        // Example: R.raw.anim_bandage_clean
-        @RawRes val CLEAN: Int? = null
-
-        // Example: R.raw.anim_bandage_ointment
-        @RawRes val OINTMENT: Int? = null
-
-        // Example: R.raw.anim_bandage_apply
-        @RawRes val APPLY: Int? = null
-
-        // Example: R.raw.anim_bandage_triangular_position
-        @RawRes val TRIANGULAR_POSITION: Int? = null
-
-        // Example: R.raw.anim_bandage_triangular_tie
-        @RawRes val TRIANGULAR_TIE: Int? = null
-
-        // Example: R.raw.anim_bandage_triangular_secure
-        @RawRes val TRIANGULAR_SECURE: Int? = null
-
-        // Example: R.raw.anim_bandage_circular_start
-        @RawRes val CIRCULAR_START: Int? = null
-
-        // Example: R.raw.anim_bandage_circular_wrap
-        @RawRes val CIRCULAR_WRAP: Int? = null
-
-        // Example: R.raw.anim_bandage_circular_secure
-        @RawRes val CIRCULAR_SECURE: Int? = null
-    }
-
-    /**
-     * General animations used across multiple protocols.
-     */
-    object General {
-        // Example: R.raw.anim_wash_hands
-        @RawRes val WASH_HANDS: Int? = null
-
-        // Example: R.raw.anim_call_911
-        @RawRes val CALL_911: Int? = null
+        @RawRes
+        val ASSESS: Int? = null
+        @RawRes
+        val PRESSURE: Int? = null
+        @RawRes
+        val CLEAN: Int? = null
+        @RawRes
+        val OINTMENT: Int? = null
+        @RawRes
+        val APPLY: Int? = null
+        @RawRes
+        val TRIANGULAR_POSITION: Int? = null
+        @RawRes
+        val TRIANGULAR_TIE: Int? = null
+        @RawRes
+        val TRIANGULAR_SECURE: Int? = null
+        @RawRes
+        val CIRCULAR_START: Int? = null
+        @RawRes
+        val CIRCULAR_WRAP: Int? = null
+        @RawRes
+        val CIRCULAR_SECURE: Int? = null
     }
 
     /**
@@ -138,27 +127,38 @@ object AnimationConfig {
      */
     fun getAnimationResource(animationName: String): Int? {
         return when (animationName) {
-            // CPR
-            "cpr_check_response.json" -> CPR.CHECK_RESPONSE
-            "call_911.json" -> CPR.CALL_911
-            "cpr_hand_position.json" -> CPR.HAND_POSITION
-            "cpr_compressions.json" -> CPR.COMPRESSIONS
-            "cpr_rescue_breaths.json" -> CPR.RESCUE_BREATHS
-            "cpr_cycle.json" -> CPR.CYCLE
-            "aed_power_on.json" -> CPR.AED_POWER_ON
-            "aed_pad_placement.json" -> CPR.AED_PAD_PLACEMENT
+            // CPR Learning Mode
+            "SurveyGIF.gif" -> CPR.SURVEY
+            "cpr_1.gif" -> CPR.CHECK_PATIENT_1
+            "CallEmergency.gif" -> CPR.CALL_EMERGENCY
+            "cpr_2.gif" -> CPR.CHECK_PATIENT_2
+            "CPR Checklist.gif" -> CPR.CPR_CHECKLIST
+            "DontCPR.gif" -> CPR.DONT_CPR
+            "TIPSGIF.gif" -> CPR.TIPS
+            "cpr_pos_1.gif" -> CPR.POSITION_1
+            "cpr_pos_2.gif" -> CPR.POSITION_2
+            "cpr_pos_3.gif" -> CPR.POSITION_3
+            "cpr_proper.gif" -> CPR.CPR_PROPER
+            "cpr_rescuebreaths.gif" -> CPR.RESCUE_BREATHS
+            "cpr_checkagain.gif" -> CPR.CHECK_AGAIN
+            "cpr_switch.gif" -> CPR.CPR_SWITCH
+            "aed_1.gif" -> CPR.AED_1
+            "aed_2.gif" -> CPR.AED_2
+            "aed_3.gif" -> CPR.AED_3
+            "aed_4.gif" -> CPR.AED_4
+            "Disclaimer.gif" -> CPR.DISCLAIMER
 
-            // Heimlich
-            "heimlich_assess.json" -> Heimlich.ASSESS
-            "heimlich_position.json" -> Heimlich.POSITION
-            "heimlich_fist.json" -> Heimlich.FIST
-            "heimlich_thrust.json" -> Heimlich.THRUST
-            "heimlich_check.json" -> Heimlich.CHECK
-            "heimlich_self_fist.json" -> Heimlich.SELF_FIST
-            "heimlich_self_thrust.json" -> Heimlich.SELF_THRUST
-            "heimlich_self_chair.json" -> Heimlich.SELF_CHAIR
+            // Heimlich Self
+            "heimlich_yself_1.gif" -> Heimlich.SELF_1
+            "heimlich_yself_.gif" -> Heimlich.SELF_2
+            "heimlich_yself_3.gif" -> Heimlich.SELF_3
+            // Heimlich Others
+            "heimlich_other_1.gif" -> Heimlich.OTHER_1
+            "heimlich_other_2.gif" -> Heimlich.OTHER_2
+            "heimlich_other_3.gif" -> Heimlich.OTHER_3
+            "heimlich_other_4.gif" -> Heimlich.OTHER_4
 
-            // Bandaging
+            // Bandaging (unchanged)
             "bandage_assess.json" -> Bandaging.ASSESS
             "bandage_pressure.json" -> Bandaging.PRESSURE
             "bandage_clean.json" -> Bandaging.CLEAN
@@ -170,9 +170,6 @@ object AnimationConfig {
             "bandage_circular_start.json" -> Bandaging.CIRCULAR_START
             "bandage_circular_wrap.json" -> Bandaging.CIRCULAR_WRAP
             "bandage_circular_secure.json" -> Bandaging.CIRCULAR_SECURE
-
-            // General
-            "wash_hands.json" -> General.WASH_HANDS
 
             else -> null
         }

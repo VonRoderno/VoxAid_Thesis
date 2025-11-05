@@ -6,44 +6,43 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.voxaid.core.common.datastore.EmergencyLockState
 import com.voxaid.core.design.components.Call911Dialog
 import com.voxaid.core.design.components.VoxAidTopBar
 import com.voxaid.core.design.theme.VoxAidTheme
 
 /**
- * Category selection screen.
- * Displays available first aid protocols (CPR, Heimlich, Bandaging).
+ * Category selection screen with emergency lock badges.
+ * Shows unlock progress for emergency mode protocols.
+ *
+ * Updated: Displays lock state and progress at category level
  */
 @Composable
 fun CategoryScreen(
     mode: String,
     onProtocolSelected: (String) -> Unit,
-    onBackClick: () -> Unit
+    onBackClick: () -> Unit,
+    viewModel: CategoryViewModel = hiltViewModel()
 ) {
-    val isEmergency = mode == "emergency"
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
     var show911Dialog by remember { mutableStateOf(false) }
+    var showLockedDialog by remember { mutableStateOf<CategoryState?>(null) }
 
-    val protocols = listOf(
-        Protocol("cpr","CPR (Cardiopulmonary Resuscitation)","For unresponsive person not breathing", Icons.Default.Favorite),
-        Protocol("heimlich","Heimlich Maneuver","For choking victim", Icons.Default.Warning),
-        Protocol("bandaging","Wound Bandaging","For bleeding wounds", Icons.Default.HealthAndSafety)
-    )
-
-    // 911 dialog
+    // Handle 911 dialog
     if (show911Dialog) {
         Call911Dialog(
             onConfirm = {
@@ -58,45 +57,151 @@ fun CategoryScreen(
         )
     }
 
+    // Handle locked protocol dialog
+    showLockedDialog?.let { categoryState ->
+        LockedProtocolDialog(
+            protocolName = categoryState.protocol.name,
+            lockState = categoryState.lockState,
+            onDismiss = { showLockedDialog = null },
+            onGoToInstructional = {
+                showLockedDialog = null
+                onBackClick() // Return to mode selection
+            }
+        )
+    }
+
     Scaffold(
         topBar = {
             VoxAidTopBar(
-                title = if (isEmergency) "Emergency Protocols" else "Learn Protocols",
+                title = if (mode == "emergency") "🚨 Emergency Protocols" else "Learn Protocols",
                 onBackClick = onBackClick,
                 show911Button = true,
                 on911Click = { show911Dialog = true }
             )
         },
-        containerColor = if (isEmergency)
+        containerColor = if (mode == "emergency")
             MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.08f)
         else MaterialTheme.colorScheme.background
     ) { paddingValues ->
 
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .padding(horizontal = 20.dp, vertical = 12.dp)
-        ) {
-            Text(
-                text = if (isEmergency) "Select the emergency you're facing:"
-                else "Choose a protocol to learn:",
-                style = MaterialTheme.typography.titleLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(bottom = 12.dp)
+        when (val state = uiState) {
+            is CategoryUiState.Loading -> {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(paddingValues),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator()
+                }
+            }
+
+            is CategoryUiState.Success -> {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(paddingValues)
+                        .padding(horizontal = 20.dp, vertical = 12.dp)
+                ) {
+                    // Emergency mode banner
+                    if (state.isEmergencyMode) {
+                        EmergencyModeBanner(
+                            allLocked = state.allLocked,
+                            modifier = Modifier.padding(bottom = 16.dp)
+                        )
+                    }
+
+                    Text(
+                        text = if (state.isEmergencyMode)
+                            "Select the emergency you're facing:"
+                        else
+                            "Choose a protocol to learn:",
+                        style = MaterialTheme.typography.titleLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(bottom = 12.dp)
+                    )
+
+                    Spacer(modifier = Modifier.height(4.dp))
+
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+                        verticalArrangement = Arrangement.spacedBy(14.dp)
+                    ) {
+                        items(state.categories) { categoryState ->
+                            CategoryCard(
+                                categoryState = categoryState,
+                                isEmergencyMode = state.isEmergencyMode,
+                                onClick = {
+                                    if (viewModel.canSelectProtocol(categoryState.protocol.id)) {
+                                        onProtocolSelected(categoryState.protocol.id)
+                                    } else {
+                                        showLockedDialog = categoryState
+                                    }
+                                }
+                            )
+                        }
+                    }
+                }
+            }
+
+            is CategoryUiState.Error -> {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(paddingValues),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text(
+                            text = "Error Loading Categories",
+                            style = MaterialTheme.typography.titleLarge,
+                            color = MaterialTheme.colorScheme.error
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(text = state.message)
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun EmergencyModeBanner(
+    allLocked: Boolean,
+    modifier: Modifier = Modifier
+) {
+    if (allLocked) {
+        Card(
+            modifier = modifier.fillMaxWidth(),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.errorContainer
             )
-
-            Spacer(modifier = Modifier.height(4.dp))
-
-            LazyColumn(
-                modifier = Modifier.fillMaxSize(),
-                verticalArrangement = Arrangement.spacedBy(14.dp)
+        ) {
+            Row(
+                modifier = Modifier.padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                items(protocols) { protocol ->
-                    CategoryProtocolCard(
-                        protocol = protocol,
-                        isEmergency = isEmergency,
-                        onClick = { onProtocolSelected(protocol.id) }
+                Icon(
+                    imageVector = Icons.Default.Lock,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.size(32.dp)
+                )
+
+                Spacer(modifier = Modifier.width(12.dp))
+
+                Column {
+                    Text(
+                        text = "🔒 All Protocols Locked",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onErrorContainer
+                    )
+                    Text(
+                        text = "Complete training in Instructional Mode to unlock Emergency Mode",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onErrorContainer
                     )
                 }
             }
@@ -105,25 +210,30 @@ fun CategoryScreen(
 }
 
 @Composable
-private fun CategoryProtocolCard(
-    protocol: Protocol,
-    isEmergency: Boolean,
+private fun CategoryCard(
+    categoryState: CategoryState,
+    isEmergencyMode: Boolean,
     onClick: () -> Unit
 ) {
-    val borderColor = if (isEmergency) {
-        MaterialTheme.colorScheme.error
-    } else {
-        MaterialTheme.colorScheme.primary
+    val protocol = categoryState.protocol
+    val lockState = categoryState.lockState
+    val isLocked = isEmergencyMode && !lockState.isUnlocked
+
+    val borderColor = when {
+        !isEmergencyMode -> MaterialTheme.colorScheme.primary
+        isLocked -> MaterialTheme.colorScheme.outline
+        else -> MaterialTheme.colorScheme.error
     }
 
     Card(
         onClick = onClick,
-        modifier = Modifier
-            .fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surface
         ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+        elevation = CardDefaults.cardElevation(
+            defaultElevation = if (isLocked) 0.dp else 2.dp
+        ),
         border = BorderStroke(2.dp, borderColor),
         shape = MaterialTheme.shapes.medium
     ) {
@@ -133,8 +243,14 @@ private fun CategoryProtocolCard(
                 .padding(20.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
+            // Icon
             Icon(
-                imageVector = protocol.icon,
+                imageVector = when {
+                    isLocked -> Icons.Default.Lock
+                    protocol.id == "cpr" -> Icons.Default.Favorite
+                    protocol.id == "heimlich" -> Icons.Default.Warning
+                    else -> Icons.Default.HealthAndSafety
+                },
                 contentDescription = null,
                 modifier = Modifier.size(40.dp),
                 tint = borderColor
@@ -142,14 +258,25 @@ private fun CategoryProtocolCard(
 
             Spacer(modifier = Modifier.width(16.dp))
 
-            Column(
-                modifier = Modifier.weight(1f)
-            ) {
-                Text(
-                    text = protocol.name,
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
+            Column(modifier = Modifier.weight(1f)) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = protocol.name,
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        fontWeight = if (isLocked) FontWeight.Normal else FontWeight.SemiBold
+                    )
+
+                    if (isEmergencyMode && lockState.isUnlocked) {
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Icon(
+                            imageVector = Icons.Default.CheckCircle,
+                            contentDescription = "Unlocked",
+                            modifier = Modifier.size(20.dp),
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                }
 
                 Spacer(modifier = Modifier.height(4.dp))
 
@@ -158,44 +285,171 @@ private fun CategoryProtocolCard(
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
                 )
+
+                // Lock info
+                if (isEmergencyMode) {
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    if (isLocked) {
+                        // Show progress
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                imageVector = Icons.Default.Info,
+                                contentDescription = null,
+                                modifier = Modifier.size(16.dp),
+                                tint = MaterialTheme.colorScheme.error
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(
+                                text = lockState.lockMessage,
+                                style = MaterialTheme.typography.labelMedium,
+                                color = MaterialTheme.colorScheme.error
+                            )
+                        }
+
+                        if (lockState.progress.second > 0) {
+                            Spacer(modifier = Modifier.height(8.dp))
+
+                            Column {
+                                Text(
+                                    text = "${lockState.progress.first}/${lockState.progress.second} training completed",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+
+                                Spacer(modifier = Modifier.height(4.dp))
+
+                                LinearProgressIndicator(
+                                    progress = { lockState.progressPercentage / 100f },
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(6.dp)
+                                )
+                            }
+                        }
+                    } else {
+                        // Show unlocked badge
+                        Text(
+                            text = "✓ ${lockState.lockMessage}",
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.primary,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    }
+                }
             }
 
             Icon(
-                imageVector = Icons.Default.ArrowForward,
-                contentDescription = "Select ${protocol.name}",
+                imageVector = if (isLocked) Icons.Default.Lock else Icons.Default.ArrowForward,
+                contentDescription = if (isLocked) "Locked" else "Select ${protocol.name}",
                 tint = borderColor
             )
         }
     }
 }
 
-private data class Protocol(
-    val id: String,
-    val name: String,
-    val description: String,
-    val icon: ImageVector
-)
+@Composable
+private fun LockedProtocolDialog(
+    protocolName: String,
+    lockState: EmergencyLockState,
+    onDismiss: () -> Unit,
+    onGoToInstructional: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        icon = {
+            Icon(
+                imageVector = Icons.Default.Lock,
+                contentDescription = null,
+                modifier = Modifier.size(48.dp),
+                tint = MaterialTheme.colorScheme.error
+            )
+        },
+        title = {
+            Text(
+                text = "🔒 $protocolName Locked",
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold
+            )
+        },
+        text = {
+            Column {
+                Text(
+                    text = "$protocolName is currently locked in Emergency Mode.",
+                    style = MaterialTheme.typography.bodyLarge
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Text(
+                    text = lockState.detailedMessage,
+                    style = MaterialTheme.typography.bodyMedium
+                )
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                Card(
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.primaryContainer
+                    )
+                ) {
+                    Column(modifier = Modifier.padding(12.dp)) {
+                        Text(
+                            text = "Required Training:",
+                            style = MaterialTheme.typography.labelLarge,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer
+                        )
+
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        lockState.requiredVariants.forEach { variant ->
+                            val isCompleted = variant in lockState.completedVariants
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(
+                                    imageVector = if (isCompleted) Icons.Default.CheckCircle else Icons.Default.RadioButtonUnchecked,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(16.dp),
+                                    tint = if (isCompleted) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onPrimaryContainer
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(
+                                    text = variant.replace("_", " ").replaceFirstChar { it.uppercase() },
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                                )
+                            }
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                Text(
+                    text = "💡 Complete all required training to unlock emergency access.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.primary,
+                    fontWeight = FontWeight.SemiBold
+                )
+            }
+        },
+        confirmButton = {
+            Button(onClick = onGoToInstructional) {
+                Text("Go to Training")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancel")
+            }
+        }
+    )
+}
 
 @Preview(showBackground = true)
 @Composable
 private fun CategoryScreenPreview() {
     VoxAidTheme {
-        CategoryScreen(
-            mode = "instructional",
-            onProtocolSelected = {},
-            onBackClick = {}
-        )
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-private fun CategoryScreenEmergencyPreview() {
-    VoxAidTheme {
-        CategoryScreen(
-            mode = "emergency",
-            onProtocolSelected = {},
-            onBackClick = {}
-        )
+        // Preview would use mock data
     }
 }

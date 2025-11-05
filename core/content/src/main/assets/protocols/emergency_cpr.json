@@ -1,0 +1,202 @@
+{
+  "id": "emergency_cpr",
+  "name": "Emergency CPR",
+  "description": "Fast-access CPR for real emergencies",
+  "category": "cardiac",
+  "required_learning_variants": ["cpr_learning"],
+  "warning": "⚠️ EMERGENCY MODE - Call 911 immediately before starting",
+  "emergency_notes": [
+    "Follow voice prompts exactly",
+    "Do not skip steps",
+    "Continue until help arrives"
+  ],
+  "metronome_bpm": 110,
+  "initial_step_id": "survey_scene",
+  "steps": {
+    "survey_scene": {
+      "step_type": "voice_trigger",
+      "title": "Survey the Scene",
+      "description": "Look around. Is it safe to approach?",
+      "voice_prompt": "Survey the scene. Say SAFE when it is safe to continue.",
+      "animation_resource": "SurveyGIF.gif",
+      "expected_keywords": ["safe", "clear", "okay"],
+      "timeout_seconds": 30,
+      "next_step_id": "check_response_popup"
+    },
+
+    "check_response_popup": {
+      "step_type": "popup",
+      "title": "Check Patient",
+      "description": "Check pulse, breathing, and tap + shout 'Are you okay?'\n\nSay NO if all 3 are negative.\nSay YES if at least one is positive.",
+      "voice_prompt": "Check consciousness, breathing, and pulse. Say NO if all three are absent. Say YES if any are present.",
+      "animation_resource": "cpr_2.gif",
+      "yes_next_step_id": "dont_perform_cpr",
+      "no_next_step_id": "call_emergency_popup",
+      "yes_keywords": ["yes", "yeah", "positive", "responsive"],
+      "no_keywords": ["no", "nope", "negative", "unresponsive"]
+    },
+
+    "dont_perform_cpr": {
+      "step_type": "terminal",
+      "title": "Don't Perform CPR",
+      "description": "The person has breathing, pulse, or consciousness.\n\nDO NOT perform CPR.\n\nCall emergency immediately and monitor the person.",
+      "voice_prompt": "Do not perform C P R. Call emergency services and monitor the person until help arrives.",
+      "animation_resource": "DontCPR.gif",
+      "outcome_type": "abort"
+    },
+
+    "call_emergency_popup": {
+      "step_type": "instruction",
+      "title": "Call Emergency",
+      "description": "Call 911 immediately or have someone else call.\n\nPrepare to perform CPR.",
+      "voice_prompt": "Call nine one one immediately. Prepare to perform C P R.",
+      "animation_resource": "CallEmergency.gif",
+      "duration_seconds": 10,
+      "critical_warning": "⚠️ CALL 911 BEFORE CONTINUING",
+      "next_step_id": "hard_surface"
+    },
+
+    "hard_surface": {
+      "step_type": "instruction",
+      "title": "Hard Flat Surface",
+      "description": "Ensure patient is on a hard, flat surface.\n\nMove them if necessary.",
+      "voice_prompt": "Place the patient on a hard, flat surface.",
+      "animation_resource": "cpr_pos_1.gif",
+      "duration_seconds": 5,
+      "next_step_id": "aed_popup"
+    },
+
+    "aed_popup": {
+      "step_type": "popup",
+      "title": "AED Available?",
+      "description": "Is there an AED (Automated External Defibrillator) nearby?",
+      "voice_prompt": "Is there an A E D available? Say YES or NO.",
+      "animation_resource": "aed_1.gif",
+      "yes_next_step_id": "aed_sequence",
+      "no_next_step_id": "position_body",
+      "yes_keywords": ["yes", "yeah", "affirmative", "available"],
+      "no_keywords": ["no", "nope", "negative", "unavailable"]
+    },
+
+    "aed_sequence": {
+      "step_type": "instruction",
+      "title": "Use AED",
+      "description": "Turn on AED and follow voice instructions.\n\nRemove clothing, attach pads, stand clear for analysis.",
+      "voice_prompt": "Turn on the A E D. Follow its voice instructions carefully.",
+      "animation_resource": "aed_3.gif",
+      "duration_seconds": 15,
+      "critical_warning": "Stand CLEAR when AED analyzes or shocks",
+      "next_step_id": "position_body"
+    },
+
+    "position_body": {
+      "step_type": "instruction",
+      "title": "Body Positioning",
+      "description": "Kneel beside patient.\nKeep back straight.\nShoulders over hands.\nElbows locked.",
+      "voice_prompt": "Kneel beside the patient. Position your shoulders directly over your hands. Lock your elbows.",
+      "animation_resource": "cpr_pos_3.gif",
+      "duration_seconds": 8,
+      "next_step_id": "chest_compressions"
+    },
+
+    "chest_compressions": {
+      "step_type": "timed",
+      "title": "Chest Compressions",
+      "description": "Push HARD and FAST.\n\n30 compressions at 110 BPM.\n\nAllow full chest recoil.",
+      "voice_prompt": "Start chest compressions. Push hard and fast. Follow the metronome beat. Count to 30.",
+      "animation_resource": "cpr_proper.gif",
+      "duration_seconds": 120,
+      "show_metronome": true,
+      "metronome_bpm": 110,
+      "count_beats": true,
+      "target_beats": 30,
+      "timer_events": [
+        {
+          "trigger_at_seconds": 105,
+          "event_type": "popup",
+          "popup_message": "Continue compressions.\n\nAre you alone?\n\nSay YES if alone.\nSay NO if someone else is present.",
+          "yes_action": "continue",
+          "no_action": "prepare_switch"
+        },
+        {
+          "trigger_at_seconds": 120,
+          "event_type": "step_transition"
+        }
+      ],
+      "next_step_id": "check_pulse"
+    },
+
+    "check_pulse": {
+      "step_type": "instruction",
+      "title": "Check Pulse & Breathing",
+      "description": "Check pulse and breathing simultaneously.\n\nYou have 10 seconds.",
+      "voice_prompt": "Check pulse and breathing. You have 10 seconds.",
+      "animation_resource": "cpr_checkagain.gif",
+      "duration_seconds": 10,
+      "critical_warning": "Do this check in under 10 seconds",
+      "next_step_id": "tap_shout"
+    },
+
+    "tap_shout": {
+      "step_type": "voice_trigger",
+      "title": "Check Response",
+      "description": "Tap shoulders and shout:\n\n'ARE YOU OKAY?'\n\nSay RESPONSIVE if they react.\nSay UNRESPONSIVE if no reaction.",
+      "voice_prompt": "Tap the patient's shoulders and shout: Are you okay? Say RESPONSIVE if they react. Say UNRESPONSIVE if no reaction.",
+      "animation_resource": "cpr_1.gif",
+      "expected_keywords": ["responsive", "unresponsive", "yes", "no"],
+      "next_step_id": "response_check_popup"
+    },
+
+    "response_check_popup": {
+      "step_type": "popup",
+      "title": "Patient Responsive?",
+      "description": "Did the patient respond?\n\nYES = Stop CPR\nNO = Continue CPR cycle",
+      "voice_prompt": "Is the patient responsive? Say YES to stop. Say NO to continue C P R.",
+      "animation_resource": "DontCPR.gif",
+      "yes_next_step_id": "patient_recovered",
+      "no_next_step_id": "chest_compressions",
+      "yes_keywords": ["yes", "responsive", "conscious"],
+      "no_keywords": ["no", "unresponsive", "unconscious"]
+    },
+
+    "patient_recovered": {
+      "step_type": "terminal",
+      "title": "Patient Responsive",
+      "description": "Patient is now responsive!\n\nStop CPR.\nPlace in recovery position.\nWait for emergency services.",
+      "voice_prompt": "Patient is responsive. Stop C P R. Monitor and wait for emergency services.",
+      "animation_resource": "DontCPR.gif",
+      "outcome_type": "success"
+    },
+
+    "switch_rescuers": {
+      "step_type": "instruction",
+      "title": "Switch Rescuers",
+      "description": "Switch rescuers NOW.\n\nTransition in under 5 seconds.",
+      "voice_prompt": "Switch rescuers now. Transition quickly.",
+      "animation_resource": "cpr_switch.gif",
+      "duration_seconds": 5,
+      "next_step_id": "chest_compressions"
+    },
+
+    "exhausted_popup": {
+      "step_type": "popup",
+      "title": "Can You Continue?",
+      "description": "You've been performing CPR for 2 minutes.\n\nCan you continue?\n\nYES = Continue compressions\nNO = Rest and wait for help",
+      "voice_prompt": "Can you continue performing C P R? Say YES or NO.",
+      "animation_resource": "cpr_proper.gif",
+      "yes_next_step_id": "chest_compressions",
+      "no_next_step_id": "exhausted_terminal",
+      "yes_keywords": ["yes", "continue", "keep going"],
+      "no_keywords": ["no", "exhausted", "tired", "stop"]
+    },
+
+    "exhausted_terminal": {
+      "step_type": "terminal",
+      "title": "You Did Great",
+      "description": "Rest if exhausted.\n\nYou did everything you could.\n\nWait for emergency services.",
+      "voice_prompt": "You did great. Rest now. Emergency services are on the way.",
+      "animation_resource": "Disclaimer.gif",
+      "outcome_type": "external_help"
+    }
+  }
+}

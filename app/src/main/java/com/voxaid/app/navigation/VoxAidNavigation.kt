@@ -13,33 +13,34 @@ import com.voxaid.feature.main.menu.MainMenuScreen
 
 /**
  * Navigation routes for VoxAid app.
- * Using sealed class for type-safe navigation.
+ *
+ * Updated: Emergency mode goes directly to emergency screen (no variants)
  */
 sealed class VoxAidRoute(val route: String) {
     data object Loading : VoxAidRoute("loading")
     data object MainMenu : VoxAidRoute("main_menu")
     data object Category : VoxAidRoute("category/{mode}") {
         fun createRoute(mode: String) = "category/$mode"
-
         const val ARG_MODE = "mode"
     }
     data object ProtocolVariant : VoxAidRoute("variant/{mode}/{protocol}") {
         fun createRoute(mode: String, protocol: String) = "variant/$mode/$protocol"
-
         const val ARG_MODE = "mode"
         const val ARG_PROTOCOL = "protocol"
     }
     data object Instruction : VoxAidRoute("instruction/{mode}/{variant}") {
         fun createRoute(mode: String, variant: String) = "instruction/$mode/$variant"
-
         const val ARG_MODE = "mode"
         const val ARG_VARIANT = "variant"
+    }
+    data object Emergency : VoxAidRoute("emergency/{protocol}") {
+        fun createRoute(protocol: String) = "emergency/$protocol"
+        const val ARG_PROTOCOL = "protocol"
     }
 }
 
 /**
  * Main navigation host for VoxAid.
- * Defines the navigation graph and screen transitions.
  */
 @Composable
 fun VoxAidNavHost(
@@ -50,19 +51,18 @@ fun VoxAidNavHost(
         navController = navController,
         startDestination = startDestination
     ) {
-        // Loading screen with update check
+        // Loading screen
         composable(VoxAidRoute.Loading.route) {
             LoadingScreen(
                 onNavigateToMenu = {
                     navController.navigate(VoxAidRoute.MainMenu.route) {
-                        // Clear loading from back stack
                         popUpTo(VoxAidRoute.Loading.route) { inclusive = true }
                     }
                 }
             )
         }
 
-        // Main menu - choose Instructional or Emergency mode
+        // Main menu
         composable(VoxAidRoute.MainMenu.route) {
             MainMenuScreen(
                 onModeSelected = { mode ->
@@ -71,7 +71,7 @@ fun VoxAidNavHost(
             )
         }
 
-        // Category selection screen
+        // Category selection
         composable(
             route = VoxAidRoute.Category.route,
             arguments = listOf(
@@ -80,22 +80,39 @@ fun VoxAidNavHost(
                 }
             )
         ) { backStackEntry ->
-            val mode = backStackEntry.arguments?.getString(VoxAidRoute.Category.ARG_MODE) ?: "instructional"
+            val mode = backStackEntry.arguments?.getString(VoxAidRoute.Category.ARG_MODE)
+                ?: "instructional"
 
             CategoryScreen(
                 mode = mode,
                 onProtocolSelected = { protocol ->
-                    navController.navigate(
-                        VoxAidRoute.ProtocolVariant.createRoute(mode, protocol)
-                    )
+                    when {
+                        // Emergency mode: Direct to emergency screen
+                        mode == "emergency" -> {
+                            navController.navigate(
+                                VoxAidRoute.Emergency.createRoute("emergency_$protocol")
+                            )
+                        }
+// Instructional: CPR goes direct, others to variants
+                        protocol == "cpr" -> {
+                            navController.navigate(
+                                VoxAidRoute.Instruction.createRoute(mode, "cpr_learning")
+                            )
+                        }
+// Other protocols: Variant selection
+                        else -> {
+                            navController.navigate(
+                                VoxAidRoute.ProtocolVariant.createRoute(mode, protocol)
+                            )
+                        }
+                    }
                 },
                 onBackClick = {
                     navController.popBackStack()
                 }
             )
         }
-
-        // Protocol variant selection screen
+        // Protocol variant selection (for Heimlich and Bandaging in instructional mode)
         composable(
             route = VoxAidRoute.ProtocolVariant.route,
             arguments = listOf(
@@ -107,8 +124,11 @@ fun VoxAidNavHost(
                 }
             )
         ) { backStackEntry ->
-            val mode = backStackEntry.arguments?.getString(VoxAidRoute.ProtocolVariant.ARG_MODE) ?: "instructional"
-            val protocol = backStackEntry.arguments?.getString(VoxAidRoute.ProtocolVariant.ARG_PROTOCOL) ?: "cpr"
+            val mode = backStackEntry.arguments?.getString(VoxAidRoute.ProtocolVariant.ARG_MODE)
+                ?: "instructional"
+            val protocol =
+                backStackEntry.arguments?.getString(VoxAidRoute.ProtocolVariant.ARG_PROTOCOL)
+                    ?: "heimlich"
 
             com.voxaid.feature.main.variant.ProtocolVariantScreen(
                 protocolId = protocol,
@@ -123,13 +143,13 @@ fun VoxAidNavHost(
                 },
                 onNavigateToInstructional = { variant ->
                     navController.navigate(
-                        VoxAidRoute.Instruction.createRoute("Instructional",variant)
+                        VoxAidRoute.Instruction.createRoute("instructional", variant)
                     )
                 }
             )
         }
 
-        // Instruction screen
+        // Instruction screen (learning mode)
         composable(
             route = VoxAidRoute.Instruction.route,
             arguments = listOf(
@@ -142,6 +162,22 @@ fun VoxAidNavHost(
             )
         ) {
             com.voxaid.feature.instruction.InstructionScreen(
+                onBackClick = {
+                    navController.popBackStack()
+                }
+            )
+        }
+
+        // Emergency screen (emergency mode)
+        composable(
+            route = VoxAidRoute.Emergency.route,
+            arguments = listOf(
+                navArgument(VoxAidRoute.Emergency.ARG_PROTOCOL) {
+                    type = NavType.StringType
+                }
+            )
+        ) {
+            com.voxaid.feature.instruction.emergency.EmergencyScreen(
                 onBackClick = {
                     navController.popBackStack()
                 }

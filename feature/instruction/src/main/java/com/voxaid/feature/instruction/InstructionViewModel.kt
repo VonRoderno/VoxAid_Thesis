@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.voxaid.core.audio.AudioSessionManager
 import com.voxaid.core.audio.model.VoiceIntent
+import com.voxaid.core.common.datastore.EmergencyUnlockManager
 import com.voxaid.core.common.datastore.PreferencesManager
 import com.voxaid.core.common.datastore.ProtocolCompletionManager
 import com.voxaid.core.common.model.UnlockResult
@@ -33,7 +34,8 @@ class InstructionViewModel @Inject constructor(
     private val ttsManager: TtsManager,
     private val audioSessionManager: AudioSessionManager,
     private val preferencesManager: PreferencesManager,
-    private val completionManager: ProtocolCompletionManager
+    private val completionManager: ProtocolCompletionManager,
+    private val emergencyUnlockManager: EmergencyUnlockManager
 ) : ViewModel() {
 
     // Get navigation arguments from SavedStateHandle
@@ -69,6 +71,12 @@ class InstructionViewModel @Inject constructor(
     private val _showCompletionDialog = MutableStateFlow(false)
     val showCompletionDialog: StateFlow<Boolean> = _showCompletionDialog.asStateFlow()
 
+    private val _showEmergencyUnlockedDialog = MutableStateFlow(false)
+    val showEmergencyUnlockedDialog: StateFlow<Boolean> = _showEmergencyUnlockedDialog.asStateFlow()
+
+    fun dismissEmergencyUnlockedDialog() {
+        _showEmergencyUnlockedDialog.value = false
+    }
     init {
         loadProtocol()
         observePreferences()
@@ -276,14 +284,41 @@ class InstructionViewModel @Inject constructor(
             when (val result = completionManager.markAsCompleted(variantId)) {
                 is UnlockResult.NewlyUnlocked -> {
                     Timber.i("Protocol $variantId newly unlocked!")
-                    // Show celebration dialog
                     _showCompletionDialog.value = true
+
+                    // Check if emergency mode was unlocked
+                    checkEmergencyUnlock()
                 }
                 is UnlockResult.AlreadyUnlocked -> {
                     Timber.d("Protocol $variantId was already unlocked")
                 }
                 is UnlockResult.StillLocked -> {
                     Timber.w("Protocol $variantId still locked: ${result.reason}")
+                }
+            }
+        }
+    }
+
+    /**
+     * After marking protocol as completed, check if emergency mode was unlocked.
+     */
+    private fun checkEmergencyUnlock() {
+        viewModelScope.launch {
+            // Import EmergencyUnlockManager via constructor injection first
+            val protocolCategory = when {
+                variantId.contains("cpr") -> "cpr"
+                variantId.contains("heimlich") -> "heimlich"
+                variantId.contains("bandaging") -> "bandaging"
+                else -> null
+            }
+
+            protocolCategory?.let { category ->
+                val wasUnlocked = emergencyUnlockManager.checkAndMarkNewlyUnlocked(category)
+
+                if (wasUnlocked) {
+                    Timber.i("🎉 Emergency mode unlocked for $category!")
+                    // Show celebration dialog
+                    _showEmergencyUnlockedDialog.value = true
                 }
             }
         }
