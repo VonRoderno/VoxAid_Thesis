@@ -50,6 +50,7 @@ dependencies {
     implementation(libs.compose.material3)
     implementation(libs.compose.material.icons)
     implementation(libs.androidx.foundation)
+    implementation(libs.androidx.animation)
     debugImplementation(libs.compose.ui.tooling)
 
     // AndroidX

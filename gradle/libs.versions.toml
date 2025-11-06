@@ -27,6 +27,7 @@ ui = "1.9.4"
 uiText = "1.9.4"
 appcompat = "1.7.1"
 material = "1.13.0"
+animation = "1.9.4"
 
 [libraries]
 # Compose
@@ -93,6 +94,7 @@ androidx-ui = { group = "androidx.compose.ui", name = "ui", version.ref = "ui" }
 androidx-ui-text = { group = "androidx.compose.ui", name = "ui-text", version.ref = "uiText" }
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
+androidx-animation = { group = "androidx.compose.animation", name = "animation", version.ref = "animation" }
 
 
 [plugins]

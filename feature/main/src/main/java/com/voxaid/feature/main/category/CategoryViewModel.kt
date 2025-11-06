@@ -1,3 +1,4 @@
+// feature/main/src/main/java/com/voxaid/feature/main/category/CategoryViewModel.kt
 package com.voxaid.feature.main.category
 
 import androidx.lifecycle.SavedStateHandle
@@ -14,6 +15,8 @@ import javax.inject.Inject
 /**
  * ViewModel for category selection screen.
  * Manages emergency lock states for all protocols.
+ *
+ * Updated: Bandaging removed from emergency mode (not an emergency protocol)
  */
 @HiltViewModel
 class CategoryViewModel @Inject constructor(
@@ -28,7 +31,7 @@ class CategoryViewModel @Inject constructor(
     val uiState: StateFlow<CategoryUiState> = _uiState.asStateFlow()
 
     // Available protocols
-    private val protocols = listOf(
+    private val allProtocols = listOf(
         ProtocolCategory("cpr", "CPR", "Cardiopulmonary Resuscitation"),
         ProtocolCategory("heimlich", "Heimlich", "Choking response"),
         ProtocolCategory("bandaging", "Bandaging", "Wound care")
@@ -43,7 +46,16 @@ class CategoryViewModel @Inject constructor(
             _uiState.value = CategoryUiState.Loading
 
             try {
-                // Load lock states for all protocols
+                // Filter protocols based on mode
+                val protocols = if (isEmergencyMode) {
+                    // Emergency mode: Only CPR and Heimlich
+                    allProtocols.filter { it.id in listOf("cpr", "heimlich") }
+                } else {
+                    // Instructional mode: All protocols available
+                    allProtocols
+                }
+
+                // Load lock states for each protocol
                 val categoryStates = protocols.map { protocol ->
                     val lockState = if (isEmergencyMode) {
                         loadEmergencyLockState(protocol.id)
@@ -97,9 +109,17 @@ class CategoryViewModel @Inject constructor(
     /**
      * Checks if protocol can be selected.
      * In emergency mode, only unlocked protocols are accessible.
+     * Bandaging is never accessible in emergency mode.
      */
     fun canSelectProtocol(protocolId: String): Boolean {
         val state = _uiState.value as? CategoryUiState.Success ?: return false
+
+        // Prevent bandaging selection in emergency mode
+        if (isEmergencyMode && protocolId == "bandaging") {
+            Timber.w("Attempted to select bandaging in emergency mode - blocked")
+            return false
+        }
+
         val categoryState = state.categories.find { it.protocol.id == protocolId }
 
         return if (isEmergencyMode) {

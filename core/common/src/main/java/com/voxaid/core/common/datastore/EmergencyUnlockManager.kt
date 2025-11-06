@@ -23,8 +23,10 @@ private val Context.emergencyDataStore: DataStore<Preferences> by preferencesDat
  * Manages emergency mode unlock status.
  *
  * Emergency protocols are unlocked only after completing ALL required learning variants.
- * Example: emergency_cpr requires completing cpr_learning
- * Example: emergency_heimlich requires completing heimlich_self AND heimlich_others
+ *
+ * Updated: Bandaging removed from emergency mode
+ * - Only CPR and Heimlich have emergency mode
+ * - Bandaging is instructional-only
  *
  * Storage Keys:
  * - "emergency_unlocked_{protocolId}": Boolean (unlock status)
@@ -42,20 +44,24 @@ class EmergencyUnlockManager @Inject constructor(
         /**
          * Maps emergency protocol IDs to their required learning variants.
          * Must complete ALL listed variants to unlock emergency mode.
+         *
+         * Updated: Removed bandaging (not an emergency protocol)
          */
         private val EMERGENCY_REQUIREMENTS = mapOf(
             "emergency_cpr" to listOf("cpr_learning"),
-            "emergency_heimlich" to listOf("heimlich_self", "heimlich_others"),
-            "emergency_bandaging" to listOf("bandaging_head", "bandaging_hand", "bandaging_arm_sling")
+            "emergency_heimlich" to listOf("heimlich_self", "heimlich_others")
+            // Bandaging removed - not used in emergency settings
         )
 
         /**
          * Protocol categories that have emergency mode.
+         *
+         * Updated: Only CPR and Heimlich
          */
         private val EMERGENCY_PROTOCOLS = mapOf(
             "cpr" to "emergency_cpr",
-            "heimlich" to "emergency_heimlich",
-            "bandaging" to "emergency_bandaging"
+            "heimlich" to "emergency_heimlich"
+            // "bandaging" removed - instructional only
         )
     }
 
@@ -66,7 +72,11 @@ class EmergencyUnlockManager @Inject constructor(
      * @return true if all required learning variants are completed
      */
     suspend fun isEmergencyUnlocked(protocolCategory: String): Boolean {
-        val emergencyId = EMERGENCY_PROTOCOLS[protocolCategory] ?: return false
+        val emergencyId = EMERGENCY_PROTOCOLS[protocolCategory] ?: run {
+            Timber.d("Protocol $protocolCategory has no emergency mode")
+            return false
+        }
+
         val requiredVariants = EMERGENCY_REQUIREMENTS[emergencyId] ?: return false
 
         // Check if all required variants are completed
@@ -96,9 +106,13 @@ class EmergencyUnlockManager @Inject constructor(
 
     /**
      * Gets list of required learning variants for emergency mode.
+     * Returns empty list for protocols without emergency mode (like bandaging).
      */
     fun getRequiredVariants(protocolCategory: String): List<String> {
-        val emergencyId = EMERGENCY_PROTOCOLS[protocolCategory] ?: return emptyList()
+        val emergencyId = EMERGENCY_PROTOCOLS[protocolCategory] ?: run {
+            Timber.d("Protocol $protocolCategory has no emergency mode requirements")
+            return emptyList()
+        }
         return EMERGENCY_REQUIREMENTS[emergencyId] ?: emptyList()
     }
 
@@ -130,6 +144,11 @@ class EmergencyUnlockManager @Inject constructor(
      * Checks if emergency mode just became unlocked (for showing celebration).
      */
     suspend fun checkAndMarkNewlyUnlocked(protocolCategory: String): Boolean {
+        // Skip for protocols without emergency mode
+        if (protocolCategory !in EMERGENCY_PROTOCOLS.keys) {
+            return false
+        }
+
         val wasUnlocked = isEmergencyUnlockedCached(protocolCategory)
         val isNowUnlocked = isEmergencyUnlocked(protocolCategory)
 
@@ -138,6 +157,7 @@ class EmergencyUnlockManager @Inject constructor(
 
     /**
      * Gets emergency protocol ID for a category.
+     * Returns null for protocols without emergency mode.
      */
     fun getEmergencyProtocolId(protocolCategory: String): String? {
         return EMERGENCY_PROTOCOLS[protocolCategory]

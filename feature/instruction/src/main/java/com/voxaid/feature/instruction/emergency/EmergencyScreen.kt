@@ -62,42 +62,25 @@ fun EmergencyScreen(
     val elapsedTime by viewModel.elapsedTime.collectAsStateWithLifecycle()
     val beatCount by viewModel.beatCount.collectAsStateWithLifecycle()
     val showPopup by viewModel.showPopup.collectAsStateWithLifecycle()
-    val showTimerPopup by viewModel.showTimerPopup.collectAsStateWithLifecycle()
     val isMetronomeActive by viewModel.isMetronomeActive.collectAsStateWithLifecycle()
     val show911Dialog by viewModel.show911Dialog.collectAsStateWithLifecycle()
     val audioState by viewModel.audioState.collectAsStateWithLifecycle()
     val voiceHint by viewModel.showVoiceHint.collectAsStateWithLifecycle()
 
+    // CPR Timer states
+    val compressionCycleTime by viewModel.compressionCycleTime.collectAsStateWithLifecycle()
+    val showSwitchWarning by viewModel.showSwitchWarning.collectAsStateWithLifecycle()
+    val showRescuerDialog by viewModel.showRescuerDialog.collectAsStateWithLifecycle()
+    val showContinueDialog by viewModel.showContinueDialog.collectAsStateWithLifecycle()
+    val showSwitchOverlay by viewModel.showSwitchOverlay.collectAsStateWithLifecycle()
+    val showExhaustionMessage by viewModel.showExhaustionMessage.collectAsStateWithLifecycle()
 
-    // Track completed steps for progress indicator
-    val completedSteps = remember { mutableStateSetOf<Int>() }
-    var previousStepId by remember { mutableStateOf<String?>(null) }
-    var showCompletionOverlay by remember { mutableStateOf(false) }
-    var completedStepTitle by remember { mutableStateOf("") }
-
-    // Track step completion
-    LaunchedEffect(currentStep?.stepId) {
-        currentStep?.let { step ->
-            if (previousStepId != null && previousStepId != step.stepId) {
-                // Mark previous step as completed
-                previousStepId?.let {
-                    // Show completion feedback for non-terminal steps
-                    if (step !is EmergencyStep.Terminal) {
-                        completedStepTitle = previousStepId ?: ""
-                        showCompletionOverlay = true
-                    }
-                }
-            }
-            previousStepId = step.stepId
-        }
-    }
+    val context = LocalContext.current
 
     LaunchedEffect(audioState.asrReady) {
         if (audioState.asrReady) {
             Timber.d("🎤 ASR ready, starting listening")
             viewModel.startListening()
-        } else {
-            Timber.d("⏳ Waiting for ASR to become ready...")
         }
     }
 
@@ -106,8 +89,6 @@ fun EmergencyScreen(
             viewModel.stopListening()
         }
     }
-
-    val context = LocalContext.current
 
     // Handle 911 dialog
     if (show911Dialog) {
@@ -118,55 +99,48 @@ fun EmergencyScreen(
                     data = "tel:911".toUri()
                     flags = Intent.FLAG_ACTIVITY_NEW_TASK
                 }
-                try {
-                    context.startActivity(intent)
-                } catch (e: Exception) {
-                    Timber.e(e, "Failed to launch dialer")
-                }
+                runCatching { context.startActivity(intent) }
             },
             onDismiss = { viewModel.dismiss911Dialog() }
         )
     }
 
-    // Handle popup dialogs
+    // Handle standard popups
     showPopup?.let { popup ->
         EmergencyPopupDialog(
             title = popup.title,
             message = popup.message,
             yesLabel = popup.yesLabel,
             noLabel = popup.noLabel,
-            onYes = { viewModel.selectPopupYesManually() },
-            onNo = { viewModel.selectPopupNoManually() },
+            onYes = { viewModel.handlePopupYes() },
+            onNo = { viewModel.handlePopupNo() },
             onDismiss = { viewModel.dismissPopup() }
         )
     }
 
-    // Handle timer popups
-    showTimerPopup?.let { timerPopup ->
-        EmergencyPopupDialog(
-            title = timerPopup.title,
-            message = timerPopup.message,
-            yesLabel = timerPopup.options.getOrNull(0)?.label ?: "Yes",
-            noLabel = timerPopup.options.getOrNull(1)?.label ?: "No",
-            onYes = {
-                viewModel.handleTimerPopupResponse(
-                    timerPopup.options.getOrNull(0)?.response ?: TimerPopupResponse.Continue
-                )
-            },
-            onNo = {
-                viewModel.handleTimerPopupResponse(
-                    timerPopup.options.getOrNull(1)?.response ?: TimerPopupResponse.Continue
-                )
-            },
-            onDismiss = { /* Timer popups cannot be dismissed */ }
+    // CPR Timer Dialogs
+    if (showRescuerDialog) {
+        RescuerSwitchDialog(
+            onAlone = { viewModel.onAlone() },
+            onWithHelp = { viewModel.onWithHelp() },
+            onDismiss = { /* Cannot dismiss during emergency */ }
         )
     }
 
-    // Step completion overlay
-    if (showCompletionOverlay) {
-        StepCompletionOverlay(
-            stepTitle = completedStepTitle,
-            onDismiss = { showCompletionOverlay = false }
+    if (showContinueDialog) {
+        ContinueDialog(
+            onContinue = { viewModel.onContinueCompressions() },
+            onStop = { viewModel.onStopExhausted() },
+            onDismiss = { /* Cannot dismiss during emergency */ }
+        )
+    }
+
+    if (showExhaustionMessage) {
+        ExhaustionMessage(
+            onEnd = {
+                viewModel.onEndSession()
+                onBackClick()
+            }
         )
     }
 
@@ -202,14 +176,6 @@ fun EmergencyScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .background(
-                    Brush.verticalGradient(
-                        colors = listOf(
-                            MaterialTheme.colorScheme.surface,
-                            MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.08f)
-                        )
-                    )
-                )
         ) {
             when (val state = uiState) {
                 is EmergencyUiState.Loading -> {
@@ -220,48 +186,17 @@ fun EmergencyScreen(
                 }
 
                 is EmergencyUiState.Success -> {
-                    Column(modifier = Modifier.fillMaxSize()) {
-
-                        // Protocol header
-//                        ProtocolHeaderCard(
-//                            protocolName = state.protocol.name,
-//                            warning = state.protocol.warning
-//                        )
-
-                        // Progress indicator
-                        EmergencyProgressIndicator(
-                            currentStepIndex = 0, // TODO: Track actual step index
-                            totalSteps = 10, // TODO: Get actual total from protocol
-                            completedSteps = completedSteps
-                        )
-
-                        // Current step content with animated transitions
-                        Box(
-                            modifier = Modifier
-                                .weight(1f)
-                                .fillMaxWidth()
-                                .pointerInput(Unit) {
-                                    detectHorizontalDragGestures { change, dragAmount ->
-                                        change.consume()
-                                        if (dragAmount < -50) viewModel.nextStep()
-                                        else if (dragAmount > 50) viewModel.previousStep()
-                                    }
-                                }
-                                .semantics {
-                                    liveRegion = LiveRegionMode.Assertive
-                                }
-                        ) {
-                            AnimatedContent(
-                                targetState = currentStep,
-                                transitionSpec = {
-                                    slideInHorizontally { width -> width } + fadeIn() togetherWith
-                                            slideOutHorizontally { width -> -width } + fadeOut()
-                                },
-                                label = "step_transition"
-                            ) { step ->
-                                step?.let {
+                    Box(modifier = Modifier.fillMaxSize()) {
+                        Column(modifier = Modifier.fillMaxSize()) {
+                            // Main content
+                            Box(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .fillMaxWidth()
+                            ) {
+                                currentStep?.let { step ->
                                     EmergencyStepContent(
-                                        step = it,
+                                        step = step,
                                         elapsedTime = elapsedTime,
                                         beatCount = beatCount,
                                         voiceHint = voiceHint,
@@ -269,36 +204,62 @@ fun EmergencyScreen(
                                     )
                                 }
                             }
-                        }
-                        // Metronome (for CPR)
-                        if (isMetronomeActive) {
-                            Metronome(
-                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                                bpm = state.protocol.metronomeBpm ?: 110,
-                                isPlaying = true,
-                                onBeat = { viewModel.onMetronomeBeat() }
+
+                            // Metronome
+                            if (isMetronomeActive) {
+                                com.voxaid.feature.instruction.components.Metronome(
+                                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                                    bpm = state.protocol.metronomeBpm ?: 110,
+                                    isPlaying = true,
+                                    onBeat = { viewModel.onMetronomeBeat() }
+                                )
+                            }
+
+//                            // Controls
+//                            val showNextButton = when (currentStep) {
+//                                is EmergencyStep.Instruction, is EmergencyStep.Timed, is EmergencyStep.Loop -> true
+//                                else -> false
+//                            }
+//                            val showBackButton = currentStep !is EmergencyStep.Terminal
+
+                            EmergencyControls(
+                                onBack = { viewModel.previousStep() },
+                                onRepeat = { viewModel.repeatStep() },
+                                onNext = { viewModel.nextStep() },
+//                                showNext = showNextButton,
+//                                showBack = showBackButton,
+                                voiceHint = voiceHint,
+                                isListening = audioState.isListening,
+                                modifier = Modifier.fillMaxWidth()
                             )
                         }
 
+                        // CPR Timer Display (top-right corner)
+                        if (compressionCycleTime > 0) {
+                            Column(
+                                modifier = Modifier
+                                    .align(Alignment.TopEnd)
+                                    .padding(16.dp),
+                                horizontalAlignment = Alignment.End,
+                                verticalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                TimerDisplay(
+                                    elapsedSeconds = compressionCycleTime,
+                                    showWarning = showSwitchWarning
+                                )
 
-
-                        // Control buttons
-                        val showNextButton = when (currentStep) {
-                            is EmergencyStep.Instruction, is EmergencyStep.Timed, is EmergencyStep.Loop -> true
-                            else -> false
+                                SwitchWarningBanner(
+                                    visible = showSwitchWarning
+                                )
+                            }
                         }
-                        val showBackButton = currentStep !is EmergencyStep.Terminal
 
-                        EmergencyControls(
-                            onBack = { viewModel.previousStep() },
-                            onRepeat = { viewModel.repeatStep() },
-                            onNext = { viewModel.nextStep() },
-                            showNext = showNextButton,
-                            showBack = showBackButton,
-                            voiceHint = voiceHint,
-                            isListening = audioState.isListening,
-                            modifier = Modifier.fillMaxWidth()
-                        )
+                        // Switching Rescuer Overlay
+                        if (showSwitchOverlay) {
+                            SwitchingRescuerOverlay(
+                                onComplete = { /* Handled by timer */ }
+                            )
+                        }
                     }
                 }
 
@@ -322,17 +283,14 @@ fun EmergencyScreen(
                             color = MaterialTheme.colorScheme.error
                         )
                         Spacer(modifier = Modifier.height(8.dp))
-                        Text(
-                            text = state.message,
-                            style = MaterialTheme.typography.bodyLarge,
-                            textAlign = TextAlign.Center
-                        )
+                        Text(text = state.message)
                     }
                 }
             }
         }
     }
 }
+
 
 // ProtocolHeaderCard and EmergencyStepContent remain the same as Phase 1
 // (Included in previous phase - no changes needed)

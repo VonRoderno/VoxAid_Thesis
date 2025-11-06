@@ -14,7 +14,7 @@ import com.voxaid.feature.main.menu.MainMenuScreen
 /**
  * Navigation routes for VoxAid app.
  *
- * Updated: Emergency mode goes directly to emergency screen (no variants)
+ * Updated: Emergency mode excludes bandaging (not an emergency protocol)
  */
 sealed class VoxAidRoute(val route: String) {
     data object Loading : VoxAidRoute("loading")
@@ -86,6 +86,12 @@ fun VoxAidNavHost(
             CategoryScreen(
                 mode = mode,
                 onProtocolSelected = { protocol ->
+                    // Prevent bandaging in emergency mode
+                    if (mode == "emergency" && protocol == "bandaging") {
+                        timber.log.Timber.w("Blocked emergency bandaging navigation")
+                        return@CategoryScreen
+                    }
+
                     when {
                         // Emergency mode: Direct to emergency screen
                         mode == "emergency" -> {
@@ -93,13 +99,13 @@ fun VoxAidNavHost(
                                 VoxAidRoute.Emergency.createRoute("emergency_$protocol")
                             )
                         }
-// Instructional: CPR goes direct, others to variants
+                        // Instructional: CPR goes direct, others to variants
                         protocol == "cpr" -> {
                             navController.navigate(
                                 VoxAidRoute.Instruction.createRoute(mode, "cpr_learning")
                             )
                         }
-// Other protocols: Variant selection
+                        // Other protocols: Variant selection
                         else -> {
                             navController.navigate(
                                 VoxAidRoute.ProtocolVariant.createRoute(mode, protocol)
@@ -112,6 +118,7 @@ fun VoxAidNavHost(
                 }
             )
         }
+
         // Protocol variant selection (for Heimlich and Bandaging in instructional mode)
         composable(
             route = VoxAidRoute.ProtocolVariant.route,
@@ -129,6 +136,13 @@ fun VoxAidNavHost(
             val protocol =
                 backStackEntry.arguments?.getString(VoxAidRoute.ProtocolVariant.ARG_PROTOCOL)
                     ?: "heimlich"
+
+            // Double-check: prevent emergency bandaging
+            if (mode == "emergency" && protocol == "bandaging") {
+                timber.log.Timber.e("Emergency bandaging route blocked - invalid state")
+                navController.popBackStack()
+                return@composable
+            }
 
             com.voxaid.feature.main.variant.ProtocolVariantScreen(
                 protocolId = protocol,
@@ -168,7 +182,7 @@ fun VoxAidNavHost(
             )
         }
 
-        // Emergency screen (emergency mode)
+        // Emergency screen (emergency mode - CPR and Heimlich only)
         composable(
             route = VoxAidRoute.Emergency.route,
             arguments = listOf(
@@ -176,7 +190,17 @@ fun VoxAidNavHost(
                     type = NavType.StringType
                 }
             )
-        ) {
+        ) { backStackEntry ->
+            val protocol = backStackEntry.arguments?.getString(VoxAidRoute.Emergency.ARG_PROTOCOL)
+                ?: "emergency_cpr"
+
+            // Validate: Only CPR and Heimlich allowed
+            if (!protocol.contains("cpr") && !protocol.contains("heimlich")) {
+                timber.log.Timber.e("Invalid emergency protocol: $protocol")
+                navController.popBackStack()
+                return@composable
+            }
+
             com.voxaid.feature.instruction.emergency.EmergencyScreen(
                 onBackClick = {
                     navController.popBackStack()

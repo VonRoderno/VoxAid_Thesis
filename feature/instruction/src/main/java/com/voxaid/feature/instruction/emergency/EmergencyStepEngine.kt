@@ -49,6 +49,9 @@ class EmergencyStepEngine(
     // Track triggered timer events to prevent duplicates
     private val triggeredEvents = mutableSetOf<String>()
 
+    // Step history to support back navigation
+    private val stepHistory = mutableListOf<String>()
+
     init {
         Timber.Forest.d("EmergencyStepEngine initialized with protocol: ${protocol.name}")
         updateCurrentStep(protocol.initialStepId)
@@ -63,8 +66,33 @@ class EmergencyStepEngine(
             return
         }
 
+        // Record history (avoid duplicates when first loading)
+        _currentStep.value?.stepId?.let { currentId ->
+            if (currentId != stepId) {
+                stepHistory.add(currentId)
+            }
+        }
+
         updateCurrentStep(stepId)
     }
+
+    fun previousStep(): Boolean {
+        if (stepHistory.isEmpty()) {
+            Timber.Forest.w("No previous step available")
+            return false
+        }
+
+        val previousId = stepHistory.removeAt(stepHistory.lastIndex) // pop last visited
+        if (previousId in steps) {
+            Timber.Forest.d("Navigating back to: $previousId")
+            updateCurrentStep(previousId)
+            return true
+        }
+
+        Timber.Forest.e("Previous step not found: $previousId")
+        return false
+    }
+
 
     /**
      * Advances to the next step based on current step type.
@@ -72,47 +100,52 @@ class EmergencyStepEngine(
      */
     fun nextStep(): Boolean {
         val current = _currentStep.value ?: return false
-
-        return when (current) {
-            is EmergencyStep.Instruction -> {
-                val nextId = getNextStepId(current.stepId)
+        val nextId = getNextStepId(current.stepId)
                 if (nextId != null) {
                     goToStep(nextId)
-                    true
+                    return true
                 } else {
-                    false
+                    return false
                 }
-            }
-
-            is EmergencyStep.VoiceTrigger -> {
-                // Wait for voice input - don't auto-advance
-                false
-            }
-
-            is EmergencyStep.Popup -> {
-                // Wait for user choice - don't auto-advance
-                false
-            }
-
-            is EmergencyStep.Timed -> {
-                val nextId = getNextStepId(current.stepId)
-                if (nextId != null) {
-                    goToStep(nextId)
-                    true
-                } else {
-                    false
-                }
-            }
-
-            is EmergencyStep.Loop -> {
-                handleLoop(current)
-            }
-
-            is EmergencyStep.Terminal -> {
-                false
-            }
+//        return when (current) {
+//            is EmergencyStep.Instruction -> {
+//                val nextId = getNextStepId(current.stepId)
+//                if (nextId != null) {
+//                    goToStep(nextId)
+//                    true
+//                } else {
+//                    false
+//                }
+//            }
+//
+//            is EmergencyStep.VoiceTrigger -> {
+//                // Wait for voice input - don't auto-advance
+//                false
+//            }
+//
+//            is EmergencyStep.Popup -> {
+//                // Wait for user choice - don't auto-advance
+//                false
+//            }
+//
+//            is EmergencyStep.Timed -> {
+//                val nextId = getNextStepId(current.stepId)
+//                if (nextId != null) {
+//                    goToStep(nextId)
+//                    true
+//                } else {
+//                    false
+//                }
+//            }
+//
+//            is EmergencyStep.Loop -> {
+//                handleLoop(current)
+//            }
+//
+//            is EmergencyStep.Terminal -> {
+//                false
+//            }
         }
-    }
 
     /**
      * Handles voice keyword detection.

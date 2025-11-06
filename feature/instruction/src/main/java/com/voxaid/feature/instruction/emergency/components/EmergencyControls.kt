@@ -40,8 +40,6 @@ fun EmergencyControls(
     onBack: () -> Unit,
     onRepeat: () -> Unit,
     onNext: () -> Unit,
-    showNext: Boolean = true,
-    showBack: Boolean = false,
     voiceHint: String? = null,
     isListening: Boolean = true,
     modifier: Modifier = Modifier
@@ -118,53 +116,50 @@ fun EmergencyControls(
                 }
             }
 
-            // Control buttons row with haptic feedback
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 // Back button with scale animation
-                if (showBack) {
-                    var isBackPressed by remember { mutableStateOf(false) }
-                    val backScale by animateFloatAsState(
-                        targetValue = if (isBackPressed) 0.9f else 1f,
-                        animationSpec = spring(
-                            dampingRatio = Spring.DampingRatioMediumBouncy,
-                            stiffness = Spring.StiffnessHigh
-                        ),
-                        label = "back_scale"
+                var isBackPressed by remember { mutableStateOf(false) }
+                val backScale by animateFloatAsState(
+                    targetValue = if (isBackPressed) 0.9f else 1f,
+                    animationSpec = spring(
+                        dampingRatio = Spring.DampingRatioMediumBouncy,
+                        stiffness = Spring.StiffnessHigh
+                    ),
+                    label = "back_scale"
+                )
+
+                OutlinedIconButton(
+                    onClick = {
+                        isBackPressed = true
+                        Timber.d("Back button clicked")
+                        onBack()
+                    },
+                    modifier = Modifier
+                        .size(56.dp)
+                        .scale(backScale),
+                    colors = IconButtonDefaults.outlinedIconButtonColors(
+                        contentColor = MaterialTheme.colorScheme.onSurface
+                    ),
+                    border = BorderStroke(
+                        1.dp,
+                        MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
                     )
+                ) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = "Go back",
+                        modifier = Modifier.size(28.dp)
+                    )
+                }
 
-                    OutlinedIconButton(
-                        onClick = {
-                            isBackPressed = true
-                            Timber.d("Back button clicked")
-                            onBack()
-                        },
-                        modifier = Modifier
-                            .size(56.dp)
-                            .scale(backScale),
-                        colors = IconButtonDefaults.outlinedIconButtonColors(
-                            contentColor = MaterialTheme.colorScheme.onSurface
-                        ),
-                        border = BorderStroke(
-                            1.dp,
-                            MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
-                        )
-                    ) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Go back",
-                            modifier = Modifier.size(28.dp)
-                        )
-                    }
-
-                    LaunchedEffect(isBackPressed) {
-                        if (isBackPressed) {
-                            kotlinx.coroutines.delay(100)
-                            isBackPressed = false
-                        }
+                LaunchedEffect(isBackPressed) {
+                    if (isBackPressed) {
+                        kotlinx.coroutines.delay(100)
+                        isBackPressed = false
                     }
                 }
 
@@ -186,7 +181,7 @@ fun EmergencyControls(
                         onRepeat()
                     },
                     modifier = Modifier
-                        .weight(if (showNext || showBack) 1f else 1f)
+                        .weight(1f)
                         .height(56.dp)
                         .scale(repeatScale),
                     colors = ButtonDefaults.filledTonalButtonColors(
@@ -216,44 +211,42 @@ fun EmergencyControls(
                 }
 
                 // Next button with scale animation
-                if (showNext) {
-                    var isNextPressed by remember { mutableStateOf(false) }
-                    val nextScale by animateFloatAsState(
-                        targetValue = if (isNextPressed) 0.9f else 1f,
-                        animationSpec = spring(
-                            dampingRatio = Spring.DampingRatioMediumBouncy,
-                            stiffness = Spring.StiffnessHigh
-                        ),
-                        label = "next_scale"
+                var isNextPressed by remember { mutableStateOf(false) }
+                val nextScale by animateFloatAsState(
+                    targetValue = if (isNextPressed) 0.9f else 1f,
+                    animationSpec = spring(
+                        dampingRatio = Spring.DampingRatioMediumBouncy,
+                        stiffness = Spring.StiffnessHigh
+                    ),
+                    label = "next_scale"
+                )
+
+                Button(
+                    onClick = {
+                        isNextPressed = true
+                        Timber.d("Next button clicked")
+                        onNext()
+                    },
+                    modifier = Modifier
+                        .size(56.dp)
+                        .scale(nextScale),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.error,
+                        contentColor = MaterialTheme.colorScheme.onError
+                    ),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                        contentDescription = "Next step",
+                        modifier = Modifier.size(28.dp)
                     )
+                }
 
-                    Button(
-                        onClick = {
-                            isNextPressed = true
-                            Timber.d("Next button clicked")
-                            onNext()
-                        },
-                        modifier = Modifier
-                            .size(56.dp)
-                            .scale(nextScale),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.error,
-                            contentColor = MaterialTheme.colorScheme.onError
-                        ),
-                        shape = RoundedCornerShape(12.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowForward,
-                            contentDescription = "Next step",
-                            modifier = Modifier.size(28.dp)
-                        )
-                    }
-
-                    LaunchedEffect(isNextPressed) {
-                        if (isNextPressed) {
-                            kotlinx.coroutines.delay(100)
-                            isNextPressed = false
-                        }
+                LaunchedEffect(isNextPressed) {
+                    if (isNextPressed) {
+                        kotlinx.coroutines.delay(100)
+                        isNextPressed = false
                     }
                 }
             }
@@ -312,11 +305,7 @@ fun EmergencyControls(
 
                 // Quick reference hint
                 Text(
-                    text = when {
-                        !showNext && voiceHint != null -> "🎤 Speak to continue"
-                        showNext -> "👆 Tap • 👈👉 Swipe • 🎤 Speak"
-                        else -> "Use voice or buttons"
-                    },
+                    text = "👆 Tap • 👈👉 Swipe • 🎤 Speak",
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
                     textAlign = TextAlign.End
@@ -339,8 +328,6 @@ private fun EmergencyControlsPreview() {
                 onBack = {},
                 onRepeat = {},
                 onNext = {},
-                showNext = true,
-                showBack = true,
                 voiceHint = null,
                 isListening = true
             )
@@ -350,8 +337,6 @@ private fun EmergencyControlsPreview() {
                 onBack = {},
                 onRepeat = {},
                 onNext = {},
-                showNext = true,
-                showBack = false,
                 voiceHint = "Try saying: SAFE, CLEAR, or OKAY",
                 isListening = true
             )
@@ -361,8 +346,6 @@ private fun EmergencyControlsPreview() {
                 onBack = {},
                 onRepeat = {},
                 onNext = {},
-                showNext = false,
-                showBack = false,
                 voiceHint = "Say YES or NO to continue",
                 isListening = true
             )
@@ -372,8 +355,6 @@ private fun EmergencyControlsPreview() {
                 onBack = {},
                 onRepeat = {},
                 onNext = {},
-                showNext = true,
-                showBack = true,
                 voiceHint = null,
                 isListening = false
             )
