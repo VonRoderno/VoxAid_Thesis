@@ -18,7 +18,7 @@
       "title": "Survey the Scene",
       "description": "Look around. Is it safe to approach?",
       "voice_prompt": "Survey the scene. Say SAFE when it is safe to continue.",
-      "animation_resource": "SurveyGIF.gif",
+      "animation_resource": "survey_gif.gif",
       "expected_keywords": ["safe", "clear", "okay"],
       "timeout_seconds": 30,
       "next_step_id": "check_response_popup"
@@ -41,7 +41,7 @@
       "title": "Don't Perform CPR",
       "description": "The person has breathing, pulse, or consciousness.\n\nDO NOT perform CPR.\n\nCall emergency immediately and monitor the person.",
       "voice_prompt": "Do not perform C P R. Call emergency services and monitor the person until help arrives.",
-      "animation_resource": "DontCPR.gif",
+      "animation_resource": "dont_cpr.gif",
       "outcome_type": "abort"
     },
 
@@ -50,7 +50,7 @@
       "title": "Call Emergency",
       "description": "Call 911 immediately or have someone else call.\n\nPrepare to perform CPR.",
       "voice_prompt": "Call nine one one immediately. Prepare to perform C P R.",
-      "animation_resource": "CallEmergency.gif",
+      "animation_resource": "call_emergency.gif",
       "duration_seconds": 10,
       "critical_warning": "⚠️ CALL 911 BEFORE CONTINUING",
       "next_step_id": "hard_surface"
@@ -152,7 +152,7 @@
       "title": "Patient Responsive?",
       "description": "Did the patient respond?\n\nYES = Stop CPR\nNO = Continue CPR cycle",
       "voice_prompt": "Is the patient responsive? Say YES to stop. Say NO to continue C P R.",
-      "animation_resource": "DontCPR.gif",
+      "animation_resource": "dont_cpr.gif",
       "yes_next_step_id": "patient_recovered",
       "no_next_step_id": "chest_compressions",
       "yes_keywords": ["yes", "responsive", "conscious"],
@@ -164,7 +164,7 @@
       "title": "Patient Responsive",
       "description": "Patient is now responsive!\n\nStop CPR.\nPlace in recovery position.\nWait for emergency services.",
       "voice_prompt": "Patient is responsive. Stop C P R. Monitor and wait for emergency services.",
-      "animation_resource": "DontCPR.gif",
+      "animation_resource": "dont_cpr.gif",
       "outcome_type": "success"
     },
 
@@ -195,7 +195,7 @@
       "title": "You Did Great",
       "description": "Rest if exhausted.\n\nYou did everything you could.\n\nWait for emergency services.",
       "voice_prompt": "You did great. Rest now. Emergency services are on the way.",
-      "animation_resource": "Disclaimer.gif",
+      "animation_resource": "disclaimer.gif",
       "outcome_type": "external_help"
     }
   }

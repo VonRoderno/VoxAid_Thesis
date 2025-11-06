@@ -1,6 +1,9 @@
 package com.voxaid.feature.instruction.components
 
 import android.view.Choreographer
+import android.media.AudioAttributes
+import android.media.SoundPool
+import kotlinx.coroutines.delay
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -20,6 +23,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.voxaid.core.design.theme.VoxAidTheme
+import com.voxaid.feature.instruction.R
 import kotlinx.coroutines.android.awaitFrame
 import kotlinx.coroutines.isActive
 import timber.log.Timber
@@ -34,20 +38,51 @@ import timber.log.Timber
  */
 @Composable
 fun Metronome(
+    modifier: Modifier = Modifier,
     bpm: Int = 110,
     isPlaying: Boolean = false,
     onBeat: () -> Unit = {},
-    modifier: Modifier = Modifier
+
 ) {
     val context = LocalContext.current
     var beatCount by remember { mutableStateOf(0) }
     var isBeating by remember { mutableStateOf(false) }
+    var soundLoaded by remember { mutableStateOf(false) }
 
     // Calculate interval in milliseconds
     val intervalMs = remember(bpm) {
         (60000.0 / bpm).toLong()
     }
+    // --- SoundPool setup ---
+    val soundPool = remember {
+        SoundPool.Builder()
+            .setMaxStreams(1)
+            .setAudioAttributes(
+                AudioAttributes.Builder()
+                    .setUsage(AudioAttributes.USAGE_ASSISTANCE_SONIFICATION)
+                    .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                    .build()
+            )
+            .build()
+    }
 
+    // Load tick sound
+    val soundId by remember {
+        mutableIntStateOf(
+            soundPool.load(context, R.raw.metronome_110bpm, 1)
+        )
+    }
+
+    // Release SoundPool when no longer needed
+    DisposableEffect(Unit) {
+        val listener = SoundPool.OnLoadCompleteListener { _, sampleId, status ->
+            if (status == 0) soundLoaded = true
+        }
+        soundPool.setOnLoadCompleteListener(listener)
+        onDispose {
+            soundPool.setOnLoadCompleteListener(null)
+        }
+    }
     // Precise timing using Choreographer
     LaunchedEffect(isPlaying, bpm) {
         if (!isPlaying) {
@@ -63,11 +98,19 @@ fun Metronome(
             val currentTime = System.currentTimeMillis()
             val elapsed = currentTime - lastBeatTime
 
-            if (elapsed >= intervalMs) {
+            if (elapsed >= intervalMs && soundLoaded) {
                 beatCount++
                 isBeating = true
                 onBeat()
 
+                soundPool.play(
+                    soundId,
+                    1f, // left volume
+                    1f, // right volume
+                    1,  // priority
+                    0,  // no loop
+                    1f  // normal playback rate
+                )
                 // Vibrate device for haptic feedback
                 try {
                     val vibrator = context.getSystemService(android.content.Context.VIBRATOR_SERVICE)
@@ -79,7 +122,7 @@ fun Metronome(
 
                 lastBeatTime = currentTime
 
-                Timber.d("Metronome beat: $beatCount at ${bpm} BPM")
+                Timber.d("Metronome beat: $beatCount at $bpm BPM")
             }
         }
     }

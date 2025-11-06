@@ -1,7 +1,12 @@
 package com.voxaid.feature.instruction.emergency.components
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -31,91 +36,110 @@ fun EmergencyPopupDialog(
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        icon = {
-            Icon(
-                imageVector = Icons.Default.Warning,
-                contentDescription = null,
-                modifier = Modifier.size(64.dp),
-                tint = MaterialTheme.colorScheme.error
-            )
-        },
+        containerColor = MaterialTheme.colorScheme.surface,
+        tonalElevation = 8.dp,
         title = {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.headlineLarge,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.error,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.fillMaxWidth()
-            )
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Warning,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.size(72.dp)
+                )
+                Spacer(Modifier.height(8.dp))
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.headlineMedium,
+                    fontWeight = FontWeight.ExtraBold,
+                    textAlign = TextAlign.Center,
+                    color = MaterialTheme.colorScheme.error
+                )
+            }
         },
         text = {
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier.fillMaxWidth()
-            ) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+
                 Text(
                     text = message,
                     style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.SemiBold,
                     textAlign = TextAlign.Center,
-                    lineHeight = MaterialTheme.typography.titleLarge.lineHeight.times(1.4f)
+                    modifier = Modifier.padding(horizontal = 8.dp)
                 )
 
-                Spacer(modifier = Modifier.height(24.dp))
+                Spacer(Modifier.height(20.dp))
 
-                Card(
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.primaryContainer
-                    ),
-                    modifier = Modifier.fillMaxWidth()
+                // Voice Command Area
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth(),
+                    contentAlignment = Alignment.Center
                 ) {
-                    Column(
-                        modifier = Modifier.padding(16.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
+                    Card(
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.primaryContainer
+                        ),
+                        border = BorderStroke(2.dp, MaterialTheme.colorScheme.primary),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 4.dp) // small padding prevents edge clipping
                     ) {
-                        Text(
-                            text = "🎤 SAY YOUR ANSWER:",
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onPrimaryContainer
-                        )
-
-                        Spacer(modifier = Modifier.height(8.dp))
-
-                        Row(
-                            horizontalArrangement = Arrangement.spacedBy(16.dp),
-                            verticalAlignment = Alignment.CenterVertically
+                        Column(
+                            modifier = Modifier.fillMaxWidth().padding(18.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
                         ) {
-                            Text(
-                                text = yesLabel.uppercase(),
-                                style = MaterialTheme.typography.headlineMedium,
-                                color = MaterialTheme.colorScheme.primary,
-                                fontWeight = FontWeight.Bold
+                            Icon(
+                                imageVector = Icons.Default.Mic,
+                                contentDescription = "Mic",
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(36.dp)
                             )
 
-                            Text(
-                                text = "•",
-                                style = MaterialTheme.typography.headlineMedium,
-                                color = MaterialTheme.colorScheme.onPrimaryContainer
-                            )
+                            Spacer(Modifier.height(6.dp))
 
                             Text(
-                                text = noLabel.uppercase(),
-                                style = MaterialTheme.typography.headlineMedium,
-                                color = MaterialTheme.colorScheme.error,
-                                fontWeight = FontWeight.Bold
+                                "Say your answer clearly",
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold,
+                                textAlign = TextAlign.Center
                             )
+
+                            Spacer(Modifier.height(10.dp))
+
+                            Row(
+                                horizontalArrangement = Arrangement.spacedBy(16.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    yesLabel.uppercase(),
+                                    style = MaterialTheme.typography.headlineSmall,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                                Text("•")
+                                Text(
+                                    noLabel.uppercase(),
+                                    style = MaterialTheme.typography.headlineSmall,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.error
+                                )
+                            }
                         }
                     }
                 }
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(Modifier.height(14.dp))
 
                 Text(
-                    text = "👆 Or tap the buttons below if voice isn't working",
+                    "Or tap below",
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    textAlign = TextAlign.Center
+                    textAlign = TextAlign.Center,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         },
@@ -124,59 +148,47 @@ fun EmergencyPopupDialog(
                 modifier = Modifier.fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                // YES button - Green/Primary
+                // YES button
                 Button(
                     onClick = onYes,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(80.dp),
+                        .height(70.dp),
+                    shape = RoundedCornerShape(14.dp),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = MaterialTheme.colorScheme.primary
                     )
                 ) {
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Text(
-                            text = "✓",
-                            style = MaterialTheme.typography.displaySmall
-                        )
-                        Text(
-                            text = yesLabel.uppercase(),
-                            style = MaterialTheme.typography.headlineMedium,
-                            fontWeight = FontWeight.Bold
-                        )
-                    }
+                    Icon(Icons.Default.Check, null)
+                    Spacer(Modifier.width(8.dp))
+                    Text(
+                        yesLabel.uppercase(),
+                        style = MaterialTheme.typography.headlineSmall,
+                        fontWeight = FontWeight.Bold
+                    )
                 }
 
-                // NO button - Red/Error
+                // NO button
                 Button(
                     onClick = onNo,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(80.dp),
+                        .height(70.dp),
+                    shape = RoundedCornerShape(14.dp),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = MaterialTheme.colorScheme.error
                     )
                 ) {
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Text(
-                            text = "✗",
-                            style = MaterialTheme.typography.displaySmall
-                        )
-                        Text(
-                            text = noLabel.uppercase(),
-                            style = MaterialTheme.typography.headlineMedium,
-                            fontWeight = FontWeight.Bold
-                        )
-                    }
+                    Icon(Icons.Default.Close, null)
+                    Spacer(Modifier.width(8.dp))
+                    Text(
+                        noLabel.uppercase(),
+                        style = MaterialTheme.typography.headlineSmall,
+                        fontWeight = FontWeight.Bold
+                    )
                 }
             }
-        },
-        containerColor = MaterialTheme.colorScheme.surface,
-        tonalElevation = 12.dp
+        }
     )
 }
 

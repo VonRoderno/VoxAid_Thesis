@@ -83,6 +83,20 @@ fun StepCard(
 
             Spacer(modifier = Modifier.height(if (isEmergencyMode) 16.dp else 12.dp))
 
+            // GIF Animation
+            step.animationResource?.let { animationRes ->
+                Spacer(modifier = Modifier.height(24.dp))
+
+                AnimationView(
+                    animationResource = animationRes,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(if (isEmergencyMode) 280.dp else 250.dp)
+                )
+            }
+
+            Spacer(modifier = Modifier.height(if (isEmergencyMode) 16.dp else 12.dp))
+
             // Main description
             Text(
                 text = step.description,
@@ -102,6 +116,8 @@ fun StepCard(
                     MaterialTheme.typography.bodyLarge.lineHeight.times(1.5f)
                 }
             )
+
+
 
             // Critical warning/Tips (displayed for both modes)
             // Critical warning/Tips (displayed for both modes)
@@ -146,17 +162,7 @@ fun StepCard(
                 }
             }
 
-            // GIF Animation
-            step.animationResource?.let { animationRes ->
-                Spacer(modifier = Modifier.height(24.dp))
 
-                AnimationView(
-                    animationResource = animationRes,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(if (isEmergencyMode) 280.dp else 250.dp)
-                )
-            }
         }
     }
 }

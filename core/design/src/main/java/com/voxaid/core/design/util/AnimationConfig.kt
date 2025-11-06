@@ -31,43 +31,43 @@ object AnimationConfig {
      */
     object CPR {
         @RawRes
-        val SURVEY: Int? = null // SurveyGIF.gif
+        val SURVEY: Int? = R.raw.survey_gif // survey_gif.gif
         @RawRes
-        val CHECK_PATIENT_1: Int = R.raw.cpr_pos_1 // cpr_1.gif (using existing as placeholder)
+        val CHECK_PATIENT_1: Int = R.raw.cpr_1 // cpr_1.gif (using existing as placeholder)
         @RawRes
-        val CALL_EMERGENCY: Int? = null // CallEmergency.gif
+        val CALL_EMERGENCY: Int? = R.raw.call_emergency // call_emergency.gif
         @RawRes
-        val CHECK_PATIENT_2: Int? = null // cpr_2.gif
+        val CHECK_PATIENT_2: Int? = R.raw.cpr_2 // cpr_2.gif
         @RawRes
-        val CPR_CHECKLIST: Int? = null // CPR Checklist.gif
+        val CPR_CHECKLIST: Int? = R.raw.cpr_checklist // CPR Checklist.gif
         @RawRes
-        val DONT_CPR: Int? = null // DontCPR.gif
+        val DONT_CPR: Int? = R.raw.dont_cpr // dont_cpr.gif
         @RawRes
-        val TIPS: Int? = null // TIPSGIF.gif
+        val TIPS: Int? = R.raw.tips_gif // tips_gif.gif
         @RawRes
         val POSITION_1: Int = R.raw.cpr_pos_1 // cpr_pos_1.gif
         @RawRes
-        val POSITION_2: Int? = null // cpr_pos_2.gif
+        val POSITION_2: Int? = R.raw.cpr_pos_2 // cpr_pos_2.gif
         @RawRes
-        val POSITION_3: Int? = null // cpr_pos_3.gif
+        val POSITION_3: Int? = R.raw.cpr_pos_3 // cpr_pos_3.gif
         @RawRes
-        val CPR_PROPER: Int? = null // cpr_proper.gif
+        val CPR_PROPER: Int? = R.raw.cpr_proper // cpr_proper.gif
         @RawRes
-        val RESCUE_BREATHS: Int? = null // cpr_rescuebreaths.gif
+        val RESCUE_BREATHS: Int? = R.raw.cpr_rescuebreaths // cpr_rescuebreaths.gif
         @RawRes
-        val CHECK_AGAIN: Int? = null // cpr_checkagain.gif
+        val CHECK_AGAIN: Int? = R.raw.cpr_checkagain // cpr_checkagain.gif
         @RawRes
-        val CPR_SWITCH: Int? = null // cpr_switch.gif
+        val CPR_SWITCH: Int? = R.raw.cpr_switch // cpr_switch.gif
         @RawRes
-        val AED_1: Int? = null // aed_1.gif
+        val AED_1: Int? = R.raw.aed_1 // aed_1.gif
         @RawRes
-        val AED_2: Int? = null // aed_2.gif
+        val AED_2: Int? = R.raw.aed_2 // aed_2.gif
         @RawRes
-        val AED_3: Int? = null // aed_3.gif
+        val AED_3: Int? = R.raw.aed_3 // aed_3.gif
         @RawRes
-        val AED_4: Int? = null // aed_4.gif
+        val AED_4: Int? = R.raw.aed_4 // aed_4.gif
         @RawRes
-        val DISCLAIMER: Int? = null // Disclaimer.gif
+        val DISCLAIMER: Int? = R.raw.disclaimer // disclaimer.gif
     }
 
     /**
@@ -76,21 +76,21 @@ object AnimationConfig {
     object Heimlich {
         // Self Heimlich
         @RawRes
-        val SELF_1: Int? = null // heimlich_yself_1.gif
+        val SELF_1: Int? = R.raw.heimlich_yself_1 // heimlich_yself_1.gif
         @RawRes
-        val SELF_2: Int? = null // heimlich_yself_2.gif
+        val SELF_2: Int? = R.raw.heimlich_yself_2 // heimlich_yself_2.gif
         @RawRes
-        val SELF_3: Int? = null // heimlich_yself_3.gif
+        val SELF_3: Int? = R.raw.heimlich_yself_3 // heimlich_yself_3.gif
 
         // Heimlich for Others
         @RawRes
-        val OTHER_1: Int? = null // heimlich_other_1.gif
+        val OTHER_1: Int? = R.raw.heimlich_other_1 // heimlich_other_1.gif
         @RawRes
-        val OTHER_2: Int? = null // heimlich_other_2.gif
+        val OTHER_2: Int? = R.raw.heimlich_other_2 // heimlich_other_2.gif
         @RawRes
-        val OTHER_3: Int? = null // heimlich_other_3.gif
+        val OTHER_3: Int? = R.raw.heimlich_other_3 // heimlich_other_3.gif
         @RawRes
-        val OTHER_4: Int? = null // heimlich_other_4.gif
+        val OTHER_4: Int? = R.raw.heimlich_other_4 // heimlich_other_4.gif
     }
 
     /**
@@ -128,13 +128,13 @@ object AnimationConfig {
     fun getAnimationResource(animationName: String): Int? {
         return when (animationName) {
             // CPR Learning Mode
-            "SurveyGIF.gif" -> CPR.SURVEY
+            "survey_gif.gif" -> CPR.SURVEY
             "cpr_1.gif" -> CPR.CHECK_PATIENT_1
-            "CallEmergency.gif" -> CPR.CALL_EMERGENCY
+            "call_emergency.gif" -> CPR.CALL_EMERGENCY
             "cpr_2.gif" -> CPR.CHECK_PATIENT_2
-            "CPR Checklist.gif" -> CPR.CPR_CHECKLIST
-            "DontCPR.gif" -> CPR.DONT_CPR
-            "TIPSGIF.gif" -> CPR.TIPS
+            "cpr_checklist.gif" -> CPR.CPR_CHECKLIST
+            "dont_cpr.gif" -> CPR.DONT_CPR
+            "tips_gif.gif" -> CPR.TIPS
             "cpr_pos_1.gif" -> CPR.POSITION_1
             "cpr_pos_2.gif" -> CPR.POSITION_2
             "cpr_pos_3.gif" -> CPR.POSITION_3
@@ -146,7 +146,7 @@ object AnimationConfig {
             "aed_2.gif" -> CPR.AED_2
             "aed_3.gif" -> CPR.AED_3
             "aed_4.gif" -> CPR.AED_4
-            "Disclaimer.gif" -> CPR.DISCLAIMER
+            "disclaimer.gif" -> CPR.DISCLAIMER
 
             // Heimlich Self
             "heimlich_yself_1.gif" -> Heimlich.SELF_1

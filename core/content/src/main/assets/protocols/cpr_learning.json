@@ -18,7 +18,7 @@
       "title": "Survey the Scene",
       "description": "When you arrive at the scene, survey the scene and the environment. Also ask if there is an AED present at the scene.",
       "voice_prompt": "Survey the scene and check if it is safe. Ask if there is an A E D available.",
-      "animation_resource": "SurveyGIF.gif",
+      "animation_resource": "survey_gif.gif",
       "duration_seconds": 10
     },
     {
@@ -35,7 +35,7 @@
       "title": "Call Emergency",
       "description": "Ask someone to call emergency for you but if you are alone you should call it yourself",
       "voice_prompt": "Call emergency services or ask someone nearby to call nine one one.",
-      "animation_resource": "CallEmergency.gif",
+      "animation_resource": "call_emergency.gif",
       "duration_seconds": 10,
       "critical_warning": "If alone, call 911 yourself before starting CPR"
     },
@@ -52,8 +52,8 @@
       "step_number": 5,
       "title": "Quick Note",
       "description": "Remember to check all three and only perform CPR to a person without all three",
-      "voice_prompt": "Only perform C P R if the person has no consciousness, no breathing, and no pulse.",
-      "animation_resource": "CPR Checklist.gif",
+      "voice_prompt": "Only perform CPR if the person has no consciousness, no breathing, and no pulse.",
+      "animation_resource": "cpr_checklist.gif",
       "duration_seconds": 8,
       "critical_warning": "All three must be absent: ✗ Consciousness ✗ Breathing ✗ Pulse"
     },
@@ -62,7 +62,7 @@
       "title": "If at least one (Breathing, Pulse, Consciousness) is present",
       "description": "Remember to not perform CPR because it might be dangerous. Wait for the emergency patiently.",
       "voice_prompt": "If the person has breathing, pulse, or consciousness, do NOT perform C P R. Wait for emergency services.",
-      "animation_resource": "DontCPR.gif",
+      "animation_resource": "dont_cpr.gif",
       "duration_seconds": 8,
       "critical_warning": "Performing CPR on a responsive person can cause serious harm"
     },
@@ -71,7 +71,7 @@
       "title": "If all of the checklist is X",
       "description": "Introduce yourself as the CPR giver and ask around if there are any relatives of the patient. Ask if the patient has a DNR (If yes, don't perform CPR). Most importantly, ask consent and only perform CPR if consent is given.",
       "voice_prompt": "Introduce yourself. Ask if there are relatives present. Check for D N R. Ask for consent to perform C P R.",
-      "animation_resource": "TIPSGIF.gif",
+      "animation_resource": "tips_gif.gif",
       "duration_seconds": 15,
       "critical_warning": "Tip: DNR means Do Not Resuscitate - you cannot perform CPR if one exists"
     },
@@ -80,7 +80,7 @@
       "title": "Check Surroundings",
       "description": "Survey the scene again and check if it is safe to perform CPR",
       "voice_prompt": "Survey the scene one more time. Make sure it is safe to perform C P R.",
-      "animation_resource": "SurveyGIF.gif",
+      "animation_resource": "survey_gif.gif",
       "duration_seconds": 5,
       "critical_warning": "Tip: Your safety comes first - don't perform CPR in dangerous locations"
     },
@@ -143,7 +143,7 @@
       "title": "If the Person is Now Responsive",
       "description": "Stop the CPR and wait for the emergency response",
       "voice_prompt": "If the person shows signs of life, stop C P R. Monitor them and wait for emergency services.",
-      "animation_resource": "DontCPR.gif",
+      "animation_resource": "dont_cpr.gif",
       "duration_seconds": 8,
       "critical_warning": "Place responsive person in recovery position and monitor breathing"
     },
@@ -206,7 +206,7 @@
       "title": "Philippine Red Cross Contact Information",
       "description": "(+63 2) 8790-2365\n(+63 2) 8790-2300 loc. 934/933\n(+63 917) 806-8520\nsafetytraining@redcross.org.ph",
       "voice_prompt": "For professional C P R training, contact Philippine Red Cross.",
-      "animation_resource": "Disclaimer.gif",
+      "animation_resource": "disclaimer.gif",
       "duration_seconds": 10,
       "critical_warning": "Tip: Get certified! Professional training saves lives"
     }

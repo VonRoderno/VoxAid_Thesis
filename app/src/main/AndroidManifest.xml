@@ -12,6 +12,7 @@
 
     <!-- Emergency calling - ACTION_DIAL doesn't require permission, but we declare it for clarity -->
     <uses-permission android:name="android.permission.CALL_PHONE" />
+    <uses-permission android:name="android.permission.VIBRATE" />
 
     <!-- Optional: for potential wake lock and foreground service -->
     <uses-permission android:name="android.permission.WAKE_LOCK" />

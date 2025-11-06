@@ -20,6 +20,7 @@ import com.voxaid.core.design.components.Call911Dialog
 import com.voxaid.core.design.components.VoxAidTopBar
 import com.voxaid.core.design.theme.VoxAidTheme
 import com.voxaid.feature.instruction.components.*
+import timber.log.Timber
 
 /**
  * Instruction screen for displaying protocol steps.
@@ -41,8 +42,13 @@ fun InstructionScreen(
     val context = LocalContext.current
 
     // Start listening when screen appears
-    LaunchedEffect(Unit) {
-        viewModel.startListening()
+    LaunchedEffect(audioState.asrReady) {
+        if (audioState.asrReady) {
+            Timber.d("🎤 ASR ready, starting listening")
+            viewModel.startListening()
+        } else {
+            Timber.d("⏳ Waiting for ASR to become ready...")
+        }
     }
 
     // Stop listening when screen disappears
@@ -128,32 +134,32 @@ fun InstructionScreen(
                     Column(modifier = Modifier.fillMaxSize()) {
 
                         // Protocol-level warning banner
-                        state.protocol.warning?.let { warning ->
-                            BorderedInfoBanner(
-                                text = warning,
-                                type = if (isEmergencyMode) BannerType.Warning else BannerType.Info,
-                                modifier = Modifier.padding(16.dp)
-                            )
-                        }
-
-// Step-specific emergency warning
-                        if (isEmergencyMode && state.currentStep.criticalWarning != null) {
-                            BorderedInfoBanner(
-                                text = state.currentStep.criticalWarning!!,
-                                type = BannerType.Critical,
-                                modifier = Modifier.padding(horizontal = 16.dp)
-                            )
-                        }
+//                        state.protocol.warning?.let { warning ->
+//                            BorderedInfoBanner(
+//                                text = warning,
+//                                type = if (isEmergencyMode) BannerType.Warning else BannerType.Info,
+//                                modifier = Modifier.padding(16.dp)
+//                            )
+//                        }
+//
+//// Step-specific emergency warning
+//                        if (isEmergencyMode && state.currentStep.criticalWarning != null) {
+//                            BorderedInfoBanner(
+//                                text = state.currentStep.criticalWarning!!,
+//                                type = BannerType.Critical,
+//                                modifier = Modifier.padding(horizontal = 16.dp)
+//                            )
+//                        }
 
                         // Metronome for CPR (when applicable)
-                        if (state.protocol.id == "cpr" && state.protocol.metronomeBpm != null) {
-                            Metronome(
-                                bpm = state.protocol.metronomeBpm!!,
-                                isPlaying = isMetronomeActive,
-                                onBeat = {},
-                                modifier = Modifier.padding(16.dp)
-                            )
-                        }
+//                        if (state.protocol.id == "cpr_learning" && state.protocol.metronomeBpm != null) {
+//                            Metronome(
+//                                bpm = state.protocol.metronomeBpm!!,
+//                                isPlaying = isMetronomeActive,
+//                                onBeat = {},
+//                                modifier = Modifier.padding(16.dp)
+//                            )
+//                        }
 
                         // Auto-advance timer for emergency mode
                         if (isEmergencyMode && state.currentStep.durationSeconds != null) {
