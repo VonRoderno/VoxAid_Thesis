@@ -98,27 +98,65 @@ object AnimationConfig {
      */
     object Bandaging {
         @RawRes
-        val ASSESS: Int? = null
+        val ALTERNATIVE: Int? = R.raw.alternative
+
+        // Head bandaging
         @RawRes
-        val PRESSURE: Int? = null
+        val HEAD_1: Int? = R.raw.headbandage_1
         @RawRes
-        val CLEAN: Int? = null
+        val HEAD_2: Int? = R.raw.headbandage_2
         @RawRes
-        val OINTMENT: Int? = null
+        val HEAD_3: Int? = R.raw.headbandage_3
         @RawRes
-        val APPLY: Int? = null
+        val HEAD_4: Int? = R.raw.headbandage_4
         @RawRes
-        val TRIANGULAR_POSITION: Int? = null
+        val HEAD_5: Int? = R.raw.headbandage_5
         @RawRes
-        val TRIANGULAR_TIE: Int? = null
+        val HEAD_EXTRA: Int? = R.raw.headbandage_extra
+
+        // Arm sling
         @RawRes
-        val TRIANGULAR_SECURE: Int? = null
+        val ARM_SLING_1: Int? = R.raw.armsling_1
         @RawRes
-        val CIRCULAR_START: Int? = null
+        val ARM_SLING_2: Int? = R.raw.armsling_2
         @RawRes
-        val CIRCULAR_WRAP: Int? = null
+        val ARM_SLING_3: Int? = R.raw.armsling_3
         @RawRes
-        val CIRCULAR_SECURE: Int? = null
+        val ARM_SLING_4: Int? = R.raw.armsling_4
+        @RawRes
+        val ARM_SLING_5: Int? = R.raw.armsling_5
+        @RawRes
+        val ARM_SLING_6: Int? = R.raw.armsling_6
+        @RawRes
+        val ARM_SLING_7: Int? = R.raw.armsling_7
+
+        // Narrow cravat
+        @RawRes
+        val NARROW_CRAVAT_1: Int? = R.raw.narrowcravat_1
+        @RawRes
+        val NARROW_CRAVAT_2: Int? = R.raw.narrowcravat_2
+        @RawRes
+        val NARROW_CRAVAT_3: Int? = R.raw.narrowcravat_3
+        @RawRes
+        val NARROW_CRAVAT_4: Int? = R.raw.narrowcravat_4
+        @RawRes
+        val NARROW_CRAVAT_5: Int? = R.raw.narrowcravat_5
+        @RawRes
+        val NARROW_CRAVAT_6: Int? = R.raw.narrowcravat_6
+        @RawRes
+        val NARROW_CRAVAT_7: Int? = R.raw.narrowcravat_7
+        @RawRes
+        val NARROW_CRAVAT_8: Int? = R.raw.narrowcravat_8
+
+        // Hand Bandaging (Minor Burns)
+        @RawRes
+        val HAND_BANDAGING_MINOR_BURNS_1: Int? = R.raw.handbandaging_1
+        @RawRes
+        val HAND_BANDAGING_MINOR_BURNS_2: Int? = R.raw.handbandaging_2
+        @RawRes
+        val HAND_BANDAGING_MINOR_BURNS_3: Int? = R.raw.handbandaging_3
+        @RawRes
+        val HAND_BANDAGING_MINOR_BURNS_4: Int? = R.raw.handbandaging_4
     }
 
     /**
@@ -150,7 +188,7 @@ object AnimationConfig {
 
             // Heimlich Self
             "heimlich_yself_1.gif" -> Heimlich.SELF_1
-            "heimlich_yself_.gif" -> Heimlich.SELF_2
+            "heimlich_yself_2.gif" -> Heimlich.SELF_2
             "heimlich_yself_3.gif" -> Heimlich.SELF_3
             // Heimlich Others
             "heimlich_other_1.gif" -> Heimlich.OTHER_1
@@ -158,18 +196,45 @@ object AnimationConfig {
             "heimlich_other_3.gif" -> Heimlich.OTHER_3
             "heimlich_other_4.gif" -> Heimlich.OTHER_4
 
-            // Bandaging (unchanged)
-            "bandage_assess.json" -> Bandaging.ASSESS
-            "bandage_pressure.json" -> Bandaging.PRESSURE
-            "bandage_clean.json" -> Bandaging.CLEAN
-            "bandage_ointment.json" -> Bandaging.OINTMENT
-            "bandage_apply.json" -> Bandaging.APPLY
-            "bandage_triangular_position.json" -> Bandaging.TRIANGULAR_POSITION
-            "bandage_triangular_tie.json" -> Bandaging.TRIANGULAR_TIE
-            "bandage_triangular_secure.json" -> Bandaging.TRIANGULAR_SECURE
-            "bandage_circular_start.json" -> Bandaging.CIRCULAR_START
-            "bandage_circular_wrap.json" -> Bandaging.CIRCULAR_WRAP
-            "bandage_circular_secure.json" -> Bandaging.CIRCULAR_SECURE
+            // Shared bandaging
+            "alternative.gif" -> Bandaging.ALTERNATIVE
+
+            // Head bandaging
+            "headbandage_1.gif" -> Bandaging.HEAD_1
+            "headbandage_2.gif" -> Bandaging.HEAD_2
+            "headbandage_3.gif" -> Bandaging.HEAD_3
+            "headbandage_4.gif" -> Bandaging.HEAD_4
+            "headbandage_5.gif" -> Bandaging.HEAD_5
+            "headbandage_extra.gif" -> Bandaging.HEAD_EXTRA
+
+            // Arm sling
+            "armsling_1.gif" -> Bandaging.ARM_SLING_1
+            "armsling_2.gif" -> Bandaging.ARM_SLING_2
+            "armsling_3.gif" -> Bandaging.ARM_SLING_3
+            "armsling_4.gif" -> Bandaging.ARM_SLING_4
+            "armsling_5.gif" -> Bandaging.ARM_SLING_5
+            "armsling_6.gif" -> Bandaging.ARM_SLING_6
+            "armsling_7.gif" -> Bandaging.ARM_SLING_7
+
+            // Narrow cravat
+            "narrowcravat_1.gif" -> Bandaging.NARROW_CRAVAT_1
+            "narrowcravat_2.gif" -> Bandaging.NARROW_CRAVAT_2
+            "narrowcravat_3.gif" -> Bandaging.NARROW_CRAVAT_3
+            "narrowcravat_4.gif" -> Bandaging.NARROW_CRAVAT_4
+            "narrowcravat_5.gif" -> Bandaging.NARROW_CRAVAT_5
+            "narrowcravat_6.gif" -> Bandaging.NARROW_CRAVAT_6
+            "narrowcravat_7.gif" -> Bandaging.NARROW_CRAVAT_7
+            "narrowcravat_8.gif" -> Bandaging.NARROW_CRAVAT_8
+
+            // Hand Bandaging (Minor Burns)
+
+            "handbandaging_1.gif" -> Bandaging.HAND_BANDAGING_MINOR_BURNS_1
+            "handbandaging_2.gif" -> Bandaging.HAND_BANDAGING_MINOR_BURNS_2
+            "handbandaging_3.gif" -> Bandaging.HAND_BANDAGING_MINOR_BURNS_3
+            "handbandaging_4.gif" -> Bandaging.HAND_BANDAGING_MINOR_BURNS_4
+
+            //TODO - ADD NEW GIF MAPPINGS FOR THE BANDAGING OF HANDS HERE
+
 
             else -> null
         }

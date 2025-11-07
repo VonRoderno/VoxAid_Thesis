@@ -39,7 +39,7 @@ sealed class VoiceIntent {
 
             return when {
                 // Emergency scene survey
-                normalized in listOf("safe", "clear", "okay", "ok", "safe to approach") -> SafeClear
+                normalized in listOf("safe", "clear", "okay", "ok", "safe to approach", "save") -> SafeClear
 
                 // Yes/No responses
                 normalized in listOf("yes", "yeah", "yep", "yup", "affirmative", "correct") -> Yes
@@ -61,11 +61,18 @@ sealed class VoiceIntent {
                 normalized.contains("next") ||
                         normalized.contains("continue") && !normalized.contains("can't") ||
                         normalized.contains("go on") ||
-                        normalized.contains("proceed") -> NextStep
+                        normalized.contains("proceed")||
+                        normalized.contains("makes")||
+                        normalized.contains("mix") ||
+                        normalized.contains("myths") -> NextStep
 
                 normalized.contains("back") ||
                         normalized.contains("previous") ||
-                        normalized.contains("go back") -> PreviousStep
+                        normalized.contains("go back") ||
+                        normalized.contains("buck") ||
+                        normalized.contains("but")||
+                        normalized.contains("bob")||
+                        normalized.contains("mark") -> PreviousStep
 
                 normalized.contains("repeat") ||
                         normalized.contains("again") ||

@@ -1,0 +1,56 @@
+{
+  "id": "bandaging_hand_minor_burns",
+  "name": "Hand Bandaging (Minor Burns)",
+  "description": "Procedure for properly bandaging a hand with a minor burn using a triangular bandage.",
+  "category": "burns",
+  "estimated_duration_minutes": 5,
+  "warning": "Ensure the burn is minor before applying a bandage. Do not apply ointments or creams before covering.",
+  "emergency_notes": [
+    "Use only clean, non-stick materials when dressing a burn.",
+    "Avoid wrapping the hand too tightly; ensure proper circulation.",
+    "If the burn covers a large area or shows signs of infection, seek medical attention."
+  ],
+  "steps": [
+    {
+      "step_number": 1,
+      "title": "Preparing the Triangular Bandage",
+      "description": "\"You need a triangular bandage for this. You can also use cloth, clothes, or handkerchief as long as it is clean. Just cut or fold the alternative just like the triangular bandage. Refer to the Narrow Cravat protocol if not yet familiar.",
+      "voice_prompt": "Prepare a triangular bandage or clean cloth folded into a triangle.",
+      "animation_resource": "alternative.gif",
+      "duration_seconds": 10
+    },
+    {
+      "step_number": 2,
+      "title": "Step 1 — Position the Bandage",
+      "description": "Place the tip (apex) of the triangular bandage on the patient’s wrist, letting the rest of the bandage cover the hand.",
+      "voice_prompt": "Place the tip of the triangular bandage on the wrist, covering the hand.",
+      "animation_resource": "handbandaging_1.gif",
+      "duration_seconds": 10
+    },
+    {
+      "step_number": 3,
+      "title": "Step 2 — Roll the Edges",
+      "description": "Gently roll both sides of the bandage toward the hand until the rolls touches the hand",
+      "voice_prompt": "Roll both sides of the bandage toward the hand until they meet at the patient's hand.",
+      "animation_resource": "handbandaging_2.gif",
+      "duration_seconds": 10
+    },
+    {
+      "step_number": 4,
+      "title": "Step 3 — Secure the Bandage",
+      "description": "Cross both ends of the rolled bandage over the hand. Wrap them under the hand, then cross again on top. Tie a secure knot above the hand.",
+      "voice_prompt": "Cross both ends over the hand, wrap them underneath, and tie a secure knot on top.",
+      "animation_resource": "handbandaging_3.gif",
+      "duration_seconds": 12
+    },
+    {
+      "step_number": 5,
+      "title": "Step 4 — Tuck the Tip",
+      "description": "Gently pull the loose tip of the triangular bandage near the wrist and tuck it under the knot to keep the dressing neat and secure.",
+      "voice_prompt": "Pull the loose tip near the wrist and tuck it under the knot to secure the bandage.",
+      "animation_resource": "handbandaging_4.gif",
+      "duration_seconds": 10,
+      "critical_warning": "Ensure the bandage is snug but not tight. The patient’s fingers should remain warm and movable."
+    }
+  ]
+}

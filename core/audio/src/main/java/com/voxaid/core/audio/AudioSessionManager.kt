@@ -1,11 +1,15 @@
 package com.voxaid.core.audio
 
+import android.Manifest
 import android.content.Context
+import android.content.pm.PackageManager
 import android.media.AudioManager
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import com.voxaid.core.audio.model.AudioConfig
 import com.voxaid.core.audio.model.AudioState
+import com.voxaid.core.audio.vosk.VoskAsrManager
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -67,15 +71,24 @@ class AudioSessionManager @Inject constructor(
      * Starts the audio session and ASR with WebRTC processing.
      */
     fun startSession() {
-        if (!_audioState.value.asrReady) {
-            Timber.w("Cannot start session - ASR not ready")
+        // 🔍 Check microphone permission
+        val permissionGranted = ContextCompat.checkSelfPermission(
+            context,
+            Manifest.permission.RECORD_AUDIO
+        ) == PackageManager.PERMISSION_GRANTED
+
+        if (!permissionGranted) {
+            Timber.e("Microphone permission denied. Cannot start audio session.")
+            _audioState.value = _audioState.value.copy(
+                micPermissionGranted = false,
+                isRecording = false,
+                isListening = false
+            )
             return
         }
 
-        if (isSessionActive) {
-            Timber.d("Session already active")
-            return
-        }
+        // Update mic permission state
+        _audioState.value = _audioState.value.copy(micPermissionGranted = true)
 
         // Request audio focus
         requestAudioFocus()
@@ -89,16 +102,25 @@ class AudioSessionManager @Inject constructor(
             Timber.i("WebRTC effects status: $effectStatus")
         }
 
-        // Start ASR
         asrManager.start()
 
-        isSessionActive = true
-        _audioState.value = _audioState.value.copy(
-            isRecording = true,
-            isListening = true
-        )
+        // Only mark listening if ASR really started
+        val isAsrListening = asrManager.currentListeningState()
 
-        Timber.i("Audio session started with noise suppression")
+        if (isAsrListening) {
+            isSessionActive = true
+            _audioState.value = _audioState.value.copy(
+                isRecording = true,
+                isListening = true
+            )
+            Timber.i("Audio session started with noise suppression")
+        } else {
+            Timber.w("ASR failed to start — mic may be unavailable or permission denied.")
+            _audioState.value = _audioState.value.copy(
+                isRecording = false,
+                isListening = false
+            )
+        }
     }
 
     /**

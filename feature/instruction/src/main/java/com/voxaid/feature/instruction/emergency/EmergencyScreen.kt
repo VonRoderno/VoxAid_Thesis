@@ -155,7 +155,7 @@ fun EmergencyScreen(
                             onBackClick()
                         },
                         showMicIndicator = true,
-                        isMicActive = audioState.isListening,
+                        isMicActive = audioState.isListening && audioState.micPermissionGranted,
                         show911Button = true,
                         on911Click = { viewModel.show911Dialog() }
                     )

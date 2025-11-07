@@ -20,6 +20,8 @@ interface AsrManager {
      */
     val isListening: Flow<Boolean>
 
+    fun currentListeningState(): Boolean
+
     /**
      * Initializes the ASR engine.
      * Must be called before start().

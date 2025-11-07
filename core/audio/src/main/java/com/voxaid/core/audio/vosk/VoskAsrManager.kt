@@ -1,9 +1,12 @@
 package com.voxaid.core.audio.vosk
 
+import android.Manifest
 import android.content.Context
+import android.content.pm.PackageManager
 import android.media.AudioFormat
 import android.media.AudioRecord
 import android.media.MediaRecorder
+import androidx.core.content.ContextCompat
 import com.voxaid.core.audio.AsrManager
 import com.voxaid.core.audio.model.VoiceIntent
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -56,6 +59,7 @@ class VoskAsrManager @Inject constructor(
         private const val MODEL_NAME = "vosk-model-small-en-us-0.15"
         private const val SAMPLE_RATE = 16000f
     }
+    override fun currentListeningState(): Boolean = _isListening.value
 
     override suspend fun initialize(): Result<Unit> {
         return withContext(Dispatchers.IO) {
@@ -108,6 +112,17 @@ class VoskAsrManager @Inject constructor(
             return
         }
 
+        // 🔍 Check microphone permission
+        val permissionCheck = ContextCompat.checkSelfPermission(
+            context,
+            Manifest.permission.RECORD_AUDIO
+        )
+
+        if (permissionCheck != PackageManager.PERMISSION_GRANTED) {
+            Timber.e("Microphone permission denied. Cannot start Vosk ASR.")
+            _isListening.value = false
+            return
+        }
         try {
             // Create SpeechService with RecognitionListener
             val recognizer = Recognizer(model, SAMPLE_RATE)

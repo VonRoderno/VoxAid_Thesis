@@ -72,7 +72,7 @@ fun InstructionScreen(
                     context.startActivity(intent)
                 } catch (e: Exception) {
                     // Handle case where dialer is not available
-                    timber.log.Timber.e(e, "Failed to launch dialer")
+                    Timber.e(e, "Failed to launch dialer")
                 }
             },
             onDismiss = { viewModel.dismiss911Dialog() }
@@ -90,7 +90,7 @@ fun InstructionScreen(
                             onBackClick()
                         },
                         showMicIndicator = true,
-                        isMicActive = audioState.isListening,
+                        isMicActive = audioState.isListening && audioState.micPermissionGranted,
                         show911Button = true,
                         on911Click = { viewModel.show911Dialog() }
                     )

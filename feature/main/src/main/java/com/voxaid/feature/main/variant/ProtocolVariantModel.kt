@@ -14,7 +14,7 @@ import javax.inject.Inject
  * ViewModel for protocol variant selection screen.
  * Manages variant list with lock/unlock status based on completion.
  *
- * Updated: New bandaging variants (head, hand, arm_sling)
+ * Updated: New bandaging variants (head, arm_sling, narrow_cravat)
  */
 @HiltViewModel
 class ProtocolVariantViewModel @Inject constructor(
@@ -143,23 +143,30 @@ class ProtocolVariantViewModel @Inject constructor(
 
             "bandaging" -> listOf(
                 VariantData(
+                    id = "bandaging_narrow_cravat",
+                    name = "Narrow Cravat",
+                    description = "Folding technique for narrow cravat bandage",
+                    estimatedSteps = 9
+                ),
+                VariantData(
                     id = "bandaging_head",
                     name = "Head Bandaging",
                     description = "Triangular bandage technique for head wounds",
-                    estimatedSteps = 5
-                ),
-                VariantData(
-                    id = "bandaging_hand",
-                    name = "Hand/Wrist Bandaging",
-                    description = "Figure-8 bandaging for hand and wrist injuries",
                     estimatedSteps = 7
                 ),
                 VariantData(
                     id = "bandaging_arm_sling",
                     name = "Arm Sling",
                     description = "Triangular bandage arm sling for arm injuries",
-                    estimatedSteps = 6
+                    estimatedSteps = 8
+                ),
+                VariantData(
+                    id = "bandaging_hand_minor_burns",
+                    name = "Hand Bandaging (Minor Burns)",
+                    description = "Triangular bandage technique for minor burns on hand",
+                    estimatedSteps = 5
                 )
+
             )
 
             else -> emptyList()

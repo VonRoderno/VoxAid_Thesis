@@ -20,7 +20,7 @@
     },
     {
       "step_number": 2,
-      "title": "Step 1 — Hold the Bandage",
+      "title": "Hold the Bandage",
       "description": "Hold the apex (tip) in one hand and an edge in the other.",
       "voice_prompt": "Hold the apex, or tip, in one hand and one edge in the other.",
       "animation_resource": "narrowcravat_1.gif",
@@ -28,15 +28,15 @@
     },
     {
       "step_number": 3,
-      "title": "Step 2 — First Fold",
-      "description": "Fold the bandage in half, bringing the apex toward the base.",
-      "voice_prompt": "Fold the bandage in half, bringing the apex toward the base.",
+      "title": "First Fold",
+      "description": "Fold the apex in half with the apex on one of your hands",
+      "voice_prompt": "FFold the apex in half with the apex on one of your hands",
       "animation_resource": "narrowcravat_2.gif",
       "duration_seconds": 8
     },
     {
       "step_number": 4,
-      "title": "Step 3 — Second Fold",
+      "title": "Second Fold",
       "description": "Fold it in half again to make it narrower.",
       "voice_prompt": "Fold it in half again to make it narrower.",
       "animation_resource": "narrowcravat_3.gif",
@@ -44,41 +44,41 @@
     },
     {
       "step_number": 5,
-      "title": "Step 4 — Adjust the Ends",
-      "description": "Hold the apex and one edge again to keep the folds aligned.",
-      "voice_prompt": "Hold the apex and edge again to keep the folds aligned.",
+      "title": "Tuck and Pull",
+      "description": "Insert your hand inside the fold, grab the corner, and pull it out to neaten the shape.",
+      "voice_prompt": "Insert your hand inside, grab the corner, and pull it out to neaten the fold.",
       "animation_resource": "narrowcravat_4.gif",
       "duration_seconds": 8
     },
     {
       "step_number": 6,
-      "title": "Step 5 — Tuck and Pull",
-      "description": "Insert your hand inside the fold, grab the corner, and pull it out to neaten the shape.",
-      "voice_prompt": "Insert your hand inside, grab the corner, and pull it out to neaten the fold.",
+      "title": "Fold Once More",
+      "description": "Fold the bandage in half again to make it even narrower.",
+      "voice_prompt": "Fold the bandage in half once more to make it even narrower.",
       "animation_resource": "narrowcravat_5.gif",
       "duration_seconds": 10
     },
     {
       "step_number": 7,
-      "title": "Step 6 — Fold Once More",
-      "description": "Fold the bandage in half again to make it even narrower.",
-      "voice_prompt": "Fold the bandage in half once more to make it even narrower.",
+      "title": "Tuck and Pull",
+      "description": "Insert your hand inside the fold, grab the corner, and pull it out to neaten the shape.",
+      "voice_prompt": "Insert your hand inside, grab the corner, and pull it out to neaten the fold.",
       "animation_resource": "narrowcravat_6.gif",
       "duration_seconds": 8
     },
     {
       "step_number": 8,
-      "title": "Step 7 — Final Tuck",
-      "description": "Insert your hand inside, grab the corner, and pull it out again to flatten and tighten.",
-      "voice_prompt": "Insert your hand inside again, grab the corner, and pull to flatten.",
+      "title": "Final Fold",
+      "description": "Make one last fold in half to complete the narrow cravat.",
+      "voice_prompt": "Make one final fold in half to complete the narrow cravat.",
       "animation_resource": "narrowcravat_7.gif",
       "duration_seconds": 10
     },
     {
       "step_number": 9,
-      "title": "Step 8 — Final Fold",
-      "description": "Make one last fold in half to complete the narrow cravat.",
-      "voice_prompt": "Make one final fold in half to complete the narrow cravat.",
+      "title": "Final Tuck",
+      "description": "For the last time, insert your hand inside the fold, grab the corner, and pull it out to neaten the shape.",
+      "voice_prompt": "Insert your hand inside, grab the corner, and pull it out to neaten the fold.",
       "animation_resource": "narrowcravat_8.gif",
       "duration_seconds": 8,
       "critical_warning": "Tip: The narrow cravat should be tight and even for effective use in bandaging"

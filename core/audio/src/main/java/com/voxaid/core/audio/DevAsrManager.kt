@@ -35,7 +35,7 @@ class DevAsrManager @Inject constructor() : AsrManager {
     override val isListening: Flow<Boolean> = _isListening.asStateFlow()
 
     private var initialized = false
-
+    override fun currentListeningState(): Boolean = _isListening.value
     override suspend fun initialize(): Result<Unit> {
         return try {
             delay(500) // Simulate initialization delay

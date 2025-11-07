@@ -60,6 +60,7 @@ class ProtocolCompletionManager @Inject constructor(
             "heimlich_self",
 
             // Bandaging variants (updated)
+            "bandaging_narrow_cravat",
             "bandaging_head",
             "bandaging_hand",
             "bandaging_arm_sling"
