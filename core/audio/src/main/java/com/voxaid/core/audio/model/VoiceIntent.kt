@@ -39,15 +39,47 @@ sealed class VoiceIntent {
 
             return when {
                 // Emergency scene survey
-                normalized in listOf("safe", "clear", "okay", "ok", "safe to approach", "save") -> SafeClear
+                normalized.contains("safe") ||
+                        normalized.contains("clear") ||
+                        normalized.contains("okay") ||
+                        normalized.contains("ok") ||
+                        normalized.contains("save") -> SafeClear
+
+
+//                normalized in listOf("safe", "clear", "okay", "ok", "safe to approach", "save") -> SafeClear
 
                 // Yes/No responses
-                normalized in listOf("yes", "yeah", "yep", "yup", "affirmative", "correct") -> Yes
-                normalized in listOf("no", "nope", "nah", "negative", "incorrect") -> No
+                normalized == "yes" ||
+                        normalized == "yeah" ||
+                        normalized == "yep" ||
+                        normalized == "yup" ||
+                        normalized == "affirmative" ||
+                        normalized == "correct" -> Yes
+                normalized == "no" ||
+                        normalized == "nope" ||
+                        normalized == "nah" ||
+                        normalized == "negative" ||
+                        normalized == "incorrect" ||
+                        normalized == "whoa" -> No
+//                normalized in listOf("yes", "yeah", "yep", "yup", "affirmative", "correct") -> Yes
+//                normalized in listOf("no", "nope", "nah", "negative", "incorrect") -> No
 
                 // Responsiveness check
-                normalized in listOf("responsive", "conscious", "awake", "responding") -> Responsive
-                normalized in listOf("unresponsive", "unconscious", "not responding", "no response") -> Unresponsive
+                normalized == "responsive" ||
+                        normalized == "conscious" ||
+                        normalized == "awake" ||
+                        normalized == "responding" ||
+                        normalized == "responsible" -> Responsive
+
+                normalized == "unresponsive" ||
+                        normalized == "unconscious" ||
+                        normalized == "not awake" ||
+                        normalized == "not responding" ||
+                        normalized == "not responsible" ||
+                        normalized == "no response" -> Unresponsive
+
+//                normalized in listOf("responsive", "conscious", "awake", "responding") -> Responsive
+//                normalized in listOf("unresponsive", "unconscious", "not responding", "no response") -> Unresponsive
 
                 // Alone status
                 normalized in listOf("alone", "by myself", "solo", "just me") -> Alone
@@ -64,7 +96,8 @@ sealed class VoiceIntent {
                         normalized.contains("proceed")||
                         normalized.contains("makes")||
                         normalized.contains("mix") ||
-                        normalized.contains("myths") -> NextStep
+                        normalized.contains("myths")||
+                        normalized.contains("max") -> NextStep
 
                 normalized.contains("back") ||
                         normalized.contains("previous") ||

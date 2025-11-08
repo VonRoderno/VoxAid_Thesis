@@ -102,7 +102,7 @@
     "chest_compressions": {
       "step_type": "timed",
       "title": "Chest Compressions",
-      "description": "Push HARD and FAST.\n\n30 compressions at 110 BPM.\n\nAllow full chest recoil.",
+      "description": "Push HARD and FAST.\n\n30 compressions at 110 BPM.\n\nAllow full chest recoil.\n\nSay NEXT after 30 compressions.",
       "voice_prompt": "Start chest compressions. Push hard and fast. Follow the metronome beat. Count to 30.",
       "animation_resource": "cpr_proper.gif",
       "duration_seconds": 120,
@@ -110,19 +110,7 @@
       "metronome_bpm": 110,
       "count_beats": true,
       "target_beats": 30,
-      "timer_events": [
-        {
-          "trigger_at_seconds": 105,
-          "event_type": "popup",
-          "popup_message": "Continue compressions.\n\nAre you alone?\n\nSay YES if alone.\nSay NO if someone else is present.",
-          "yes_action": "continue",
-          "no_action": "prepare_switch"
-        },
-        {
-          "trigger_at_seconds": 120,
-          "event_type": "step_transition"
-        }
-      ],
+      "critical_warning": "⚠️ Allow full chest recoil between compressions. Say NEXT after completing 30 compressions.",
       "next_step_id": "check_pulse"
     },
 
@@ -141,22 +129,10 @@
       "step_type": "voice_trigger",
       "title": "Check Response",
       "description": "Tap shoulders and shout:\n\n'ARE YOU OKAY?'\n\nSay RESPONSIVE if they react.\nSay UNRESPONSIVE if no reaction.",
-      "voice_prompt": "Tap the patient's shoulders and shout: Are you okay? Say RESPONSIVE if they react. Say UNRESPONSIVE if no reaction.",
+      "voice_prompt": "Tap the patient's shoulders and shout: Are you okay? Say YES if they respond. Say NO if they do not.",
       "animation_resource": "cpr_1.gif",
       "expected_keywords": ["responsive", "unresponsive", "yes", "no"],
-      "next_step_id": "response_check_popup"
-    },
-
-    "response_check_popup": {
-      "step_type": "popup",
-      "title": "Patient Responsive?",
-      "description": "Did the patient respond?\n\nYES = Stop CPR\nNO = Continue CPR cycle",
-      "voice_prompt": "Is the patient responsive? Say YES to stop. Say NO to continue C P R.",
-      "animation_resource": "dont_cpr.gif",
-      "yes_next_step_id": "patient_recovered",
-      "no_next_step_id": "chest_compressions",
-      "yes_keywords": ["yes", "responsive", "conscious"],
-      "no_keywords": ["no", "unresponsive", "unconscious"]
+      "next_step_id": "chest_compressions"
     },
 
     "patient_recovered": {

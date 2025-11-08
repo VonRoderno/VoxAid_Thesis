@@ -199,8 +199,7 @@ class EmergencyViewModel @Inject constructor(
      * Resumes metronome and voice guidance.
      */
     private fun resumeCompressions() {
-        _isMetronomeActive.value = true
-        ttsManager.speak("Resume chest compressions.")
+        ttsManager.speak("Continue with the step")
     }
 
     /**
@@ -250,7 +249,7 @@ class EmergencyViewModel @Inject constructor(
      * Solo rescuer chooses to continue.
      * Reset timer and resume.
      */
-fun onContinueCompressions() {
+    fun onContinueCompressions() {
         _showContinueDialog.value = false
         resetAndResumeCompressions()
 
@@ -282,7 +281,6 @@ fun onContinueCompressions() {
         // Navigation will be handled by screen
     }
 
-    // ==================== EXISTING METHODS (Updated) ====================
 
     private fun initializeAudio() {
         viewModelScope.launch {
@@ -342,19 +340,37 @@ fun onContinueCompressions() {
             }
             is VoiceIntent.PreviousStep -> previousStep()
             is VoiceIntent.RepeatStep -> repeatStep()
+
+            // Emergency-specific keywords
             is VoiceIntent.SafeClear -> handleEmergencyKeyword("safe")
             is VoiceIntent.Yes -> handleEmergencyKeyword("yes")
             is VoiceIntent.No -> handleEmergencyKeyword("no")
-            is VoiceIntent.Responsive -> handleEmergencyKeyword("responsive")
-            is VoiceIntent.Unresponsive -> handleEmergencyKeyword("unresponsive")
+
+            // Response check keywords (tap_shout step)
+            is VoiceIntent.Responsive -> {
+                val handled = handleEmergencyKeyword("responsive")
+                if (handled) {
+                    Timber.i("Patient responsive - navigating to recovery")
+                }
+            }
+            is VoiceIntent.Unresponsive -> {
+                val handled = handleEmergencyKeyword("unresponsive")
+                if (handled) {
+                    Timber.i("Patient unresponsive - continuing CPR cycle")
+                }
+            }
+
+            // Other emergency keywords
             is VoiceIntent.Alone -> handleEmergencyKeyword("alone")
             is VoiceIntent.NotAlone -> handleEmergencyKeyword("not alone")
             is VoiceIntent.Continue -> handleEmergencyKeyword("continue")
             is VoiceIntent.Stop -> handleEmergencyKeyword("stop")
+
             is VoiceIntent.Call911 -> {
                 _show911Dialog.value = true
                 Timber.w("Voice command: Call 911 - showing dialog")
             }
+
             is VoiceIntent.Unknown -> {
                 val keyword = intent.rawText.lowercase().trim()
                 val matched = handleEmergencyKeyword(keyword)
@@ -362,6 +378,7 @@ fun onContinueCompressions() {
                     _showVoiceHint.value = "Try saying the highlighted keyword clearly"
                 }
             }
+
             else -> Timber.d("Unhandled voice intent in emergency mode: $intent")
         }
     }
@@ -380,15 +397,6 @@ fun onContinueCompressions() {
         if (handled) {
             Timber.i("✓ Emergency keyword '$normalized' handled")
             _showVoiceHint.value = null
-
-            val step = _currentStep.value
-            if (step is EmergencyStep.Popup) {
-                if (step.yesKeywords.any { it.equals(normalized, ignoreCase = true) }) {
-                    handlePopupYes()
-                } else if (step.noKeywords.any { it.equals(normalized, ignoreCase = true) }) {
-                    handlePopupNo()
-                }
-            }
         } else {
             Timber.w("✗ Emergency keyword '$normalized' NOT handled")
             _showVoiceHint.value = "Try saying: ${getExpectedKeywordsHint(currentStep)}"
@@ -399,7 +407,14 @@ fun onContinueCompressions() {
 
     private fun getExpectedKeywordsHint(step: EmergencyStep): String {
         return when (step) {
-            is EmergencyStep.VoiceTrigger -> step.expectedKeywords.joinToString(" or ").uppercase()
+            is EmergencyStep.VoiceTrigger -> {
+                // Special hint for tap_shout step
+                if (step.stepId == "tap_shout") {
+                    "YES or NO"
+                } else {
+                    step.expectedKeywords.joinToString(" or ").uppercase()
+                }
+            }
             is EmergencyStep.Popup -> "YES or NO"
             else -> "NEXT or REPEAT"
         }

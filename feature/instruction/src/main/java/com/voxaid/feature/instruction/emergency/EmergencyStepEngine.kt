@@ -152,7 +152,7 @@ class EmergencyStepEngine(
      * Returns true if keyword matched and navigation occurred.
      */
     /**
-     * Handles voice keyword detection.
+     * Handles voice keyword detection with special routing for tap_shout step.
      * Returns true if keyword matched and navigation occurred.
      */
     fun handleVoiceKeyword(keyword: String): Boolean {
@@ -161,6 +161,29 @@ class EmergencyStepEngine(
 
         Timber.d("Attempting to match keyword: '$normalizedKeyword' against step: ${current.title}")
 
+        // Special handling for tap_shout step
+        if (current.stepId == "tap_shout") {
+            return when {
+                // "Responsive" → patient recovered (success)
+                normalizedKeyword in listOf("yes", "responsive", "conscious", "awake", "responding") -> {
+                    Timber.i("✓ Patient RESPONSIVE - navigating to patient_recovered")
+                    goToStep("patient_recovered")
+                    true
+                }
+                // "Unresponsive" → continue CPR cycle
+                normalizedKeyword in listOf("no", "whoa", "unresponsive", "unconscious", "not responding", "no response") -> {
+                    Timber.i("✓ Patient UNRESPONSIVE - returning to chest_compressions")
+                    goToStep("chest_compressions")
+                    true
+                }
+                else -> {
+                    Timber.w("Keyword '$normalizedKeyword' not recognized for tap_shout step")
+                    false
+                }
+            }
+        }
+
+        // Standard voice trigger handling for other steps
         return when (current) {
             is EmergencyStep.VoiceTrigger -> {
                 // Check if keyword matches any expected keyword
@@ -277,16 +300,17 @@ class EmergencyStepEngine(
 
     /**
      * Updates beat count for compression tracking.
+     * Beat count now continues indefinitely without auto-advancing.
      */
     fun updateBeatCount(count: Int) {
         _beatCount.value = count
 
         val current = _currentStep.value
         if (current is EmergencyStep.Timed && current.countBeats) {
+            // Log milestone but don't auto-advance
             if (current.targetBeats != null && count >= current.targetBeats!!) {
-                Timber.Forest.d("Target beats reached: $count/${current.targetBeats}")
-                // Auto-advance after reaching target beats
-                nextStep()
+                Timber.d("Target beats reached: $count/${current.targetBeats}")
+                // User must manually advance with voice or button
             }
         }
     }

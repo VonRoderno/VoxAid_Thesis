@@ -142,25 +142,25 @@ private fun GifPlaceholder(
                     }
                 )
 
-                Spacer(modifier = Modifier.height(4.dp))
-
-                Text(
-                    text = contentDescription,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    textAlign = TextAlign.Center
-                )
-
-                if (!isError) {
-                    Spacer(modifier = Modifier.height(12.dp))
-
-                    Text(
-                        text = "📁 Replace with actual GIF\nSee docs/GIF_GUIDELINES.md",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.primary,
-                        textAlign = TextAlign.Center
-                    )
-                }
+//                Spacer(modifier = Modifier.height(4.dp))
+//
+//                Text(
+//                    text = contentDescription,
+//                    style = MaterialTheme.typography.bodySmall,
+//                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+//                    textAlign = TextAlign.Center
+//                )
+//
+//                if (!isError) {
+//                    Spacer(modifier = Modifier.height(12.dp))
+//
+//                    Text(
+//                        text = "📁 Replace with actual GIF\nSee docs/GIF_GUIDELINES.md",
+//                        style = MaterialTheme.typography.labelSmall,
+//                        color = MaterialTheme.colorScheme.primary,
+//                        textAlign = TextAlign.Center
+//                    )
+//                }
             }
         }
     }

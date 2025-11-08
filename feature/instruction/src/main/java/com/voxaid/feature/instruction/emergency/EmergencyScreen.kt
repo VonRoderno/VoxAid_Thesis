@@ -9,6 +9,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -18,6 +19,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
@@ -40,6 +42,7 @@ import com.voxaid.feature.instruction.components.Metronome
 import com.voxaid.feature.instruction.emergency.components.*
 import timber.log.Timber
 import androidx.core.net.toUri
+import com.voxaid.feature.instruction.components.MetronomeWithTone
 import kotlinx.coroutines.delay
 
 /**
@@ -207,7 +210,7 @@ fun EmergencyScreen(
 
                             // Metronome
                             if (isMetronomeActive) {
-                                com.voxaid.feature.instruction.components.Metronome(
+                                MetronomeWithTone(
                                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
                                     bpm = state.protocol.metronomeBpm ?: 110,
                                     isPlaying = true,
@@ -421,32 +424,6 @@ private fun EmergencyStepContent(
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.primary
                             )
-                            Spacer(modifier = Modifier.height(8.dp))
-                            Surface(
-                                color = MaterialTheme.colorScheme.primaryContainer,
-                                shape = RoundedCornerShape(8.dp)
-                            ) {
-                                Text(
-                                    text = animRes,
-                                    style = MaterialTheme.typography.bodySmall,
-                                    modifier = Modifier.padding(8.dp),
-                                    fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace
-                                )
-                            }
-                            Spacer(modifier = Modifier.height(12.dp))
-                            Text(
-                                text = "📁 Replace in:\napp/src/main/res/raw/",
-                                style = MaterialTheme.typography.labelSmall,
-                                textAlign = TextAlign.Center,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                            Spacer(modifier = Modifier.height(4.dp))
-                            Text(
-                                text = "600px • 1:1 ratio • 12-18fps • <1.2MB",
-                                style = MaterialTheme.typography.labelSmall,
-                                textAlign = TextAlign.Center,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
-                            )
                         }
                     } else {
                         GifImage(
@@ -469,61 +446,61 @@ private fun EmergencyStepContent(
             ),
             elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
         ) {
-            Text(
-                text = step.description,
-                style = MaterialTheme.typography.headlineSmall,
-                color = MaterialTheme.colorScheme.onSurface,
-                textAlign = TextAlign.Center,
-                lineHeight = MaterialTheme.typography.headlineSmall.lineHeight.times(1.4f),
-                modifier = Modifier.padding(20.dp)
-            )
+//            Text(
+//                text = step.description,
+//                style = MaterialTheme.typography.headlineSmall,
+//                color = MaterialTheme.colorScheme.onSurface,
+//                textAlign = TextAlign.Center,
+//                lineHeight = MaterialTheme.typography.headlineSmall.lineHeight.times(1.4f),
+//                modifier = Modifier.padding(20.dp)
+//            )
         }
 
-        if (step is EmergencyStep.Timed) {
-            Spacer(modifier = Modifier.height(24.dp))
-
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.3f)
-                )
-            ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(20.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    if (step.countBeats && step.targetBeats != null) {
-                        Text(
-                            text = "$beatCount",
-                            style = MaterialTheme.typography.displayLarge,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.error
-                        )
-                        Text(
-                            text = "of ${step.targetBeats} compressions",
-                            style = MaterialTheme.typography.titleMedium,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-                    } else {
-                        val minutes = elapsedTime / 60
-                        val seconds = elapsedTime % 60
-                        Text(
-                            text = String.format("%d:%02d", minutes, seconds),
-                            style = MaterialTheme.typography.displayLarge,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.error
-                        )
-                        Text(
-                            text = "elapsed",
-                            style = MaterialTheme.typography.titleMedium,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-                    }
-                }
-            }
-        }
+//        if (step is EmergencyStep.Timed) {
+//            Spacer(modifier = Modifier.height(24.dp))
+//
+//            Card(
+//                modifier = Modifier.fillMaxWidth(),
+//                colors = CardDefaults.cardColors(
+//                    containerColor = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.3f)
+//                )
+//            ) {
+//                Column(
+//                    modifier = Modifier
+//                        .fillMaxWidth()
+//                        .padding(20.dp),
+//                    horizontalAlignment = Alignment.CenterHorizontally
+//                ) {
+//                    if (step.countBeats && step.targetBeats != null) {
+//                        Text(
+//                            text = "$beatCount",
+//                            style = MaterialTheme.typography.displayLarge,
+//                            fontWeight = FontWeight.Bold,
+//                            color = MaterialTheme.colorScheme.error
+//                        )
+//                        Text(
+//                            text = "of ${step.targetBeats} compressions",
+//                            style = MaterialTheme.typography.titleMedium,
+//                            color = MaterialTheme.colorScheme.onSurface
+//                        )
+//                    } else {
+//                        val minutes = elapsedTime / 60
+//                        val seconds = elapsedTime % 60
+//                        Text(
+//                            text = String.format("%d:%02d", minutes, seconds),
+//                            style = MaterialTheme.typography.displayLarge,
+//                            fontWeight = FontWeight.Bold,
+//                            color = MaterialTheme.colorScheme.error
+//                        )
+//                        Text(
+//                            text = "elapsed",
+//                            style = MaterialTheme.typography.titleMedium,
+//                            color = MaterialTheme.colorScheme.onSurface
+//                        )
+//                    }
+//                }
+//            }
+//        }
 
         when (step) {
             is EmergencyStep.Instruction -> step.criticalWarning
@@ -572,15 +549,20 @@ private fun VoicePromptCard(
     step: EmergencyStep,
     voiceHint: String?
 ) {
+    val isPrimaryStep = step is EmergencyStep.VoiceTrigger || step is EmergencyStep.Popup
+
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 12.dp, vertical = 6.dp),
         colors = CardDefaults.cardColors(
-            containerColor = when (step) {
-                is EmergencyStep.VoiceTrigger, is EmergencyStep.Popup ->
-                    MaterialTheme.colorScheme.primaryContainer
-                else -> MaterialTheme.colorScheme.surfaceVariant
-            }
-        )
+            containerColor = if (isPrimaryStep)
+                MaterialTheme.colorScheme.primaryContainer
+            else
+                MaterialTheme.colorScheme.surfaceVariant
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = if (isPrimaryStep) 4.dp else 1.dp),
+        shape = MaterialTheme.shapes.large
     ) {
         Column(
             modifier = Modifier
@@ -588,86 +570,123 @@ private fun VoicePromptCard(
                 .padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            // 🔹 Header row
             Row(
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center
             ) {
                 Icon(
                     imageVector = Icons.Default.Mic,
                     contentDescription = null,
-                    tint = when (step) {
-                        is EmergencyStep.VoiceTrigger, is EmergencyStep.Popup ->
-                            MaterialTheme.colorScheme.primary
-                        else -> MaterialTheme.colorScheme.onSurfaceVariant
-                    },
-                    modifier = Modifier.size(20.dp)
+                    tint = if (isPrimaryStep)
+                        MaterialTheme.colorScheme.primary
+                    else
+                        MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier
+                        .size(22.dp)
+                        .padding(end = 6.dp)
                 )
-                Spacer(modifier = Modifier.width(8.dp))
                 Text(
                     text = when (step) {
                         is EmergencyStep.VoiceTrigger -> "Say one of these:"
                         is EmergencyStep.Popup -> "Say YES or NO:"
                         else -> "Voice commands active"
                     },
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.SemiBold
+                    style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Medium),
+                    color = MaterialTheme.colorScheme.onSurface
                 )
             }
 
+            // 🔸 Main prompt area
             when (step) {
                 is EmergencyStep.VoiceTrigger -> {
-                    Spacer(modifier = Modifier.height(12.dp))
-                    Text(
-                        text = step.expectedKeywords.joinToString("  •  ").uppercase(),
-                        style = MaterialTheme.typography.headlineSmall,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.primary,
-                        textAlign = TextAlign.Center
-                    )
+                    Spacer(modifier = Modifier.height(10.dp))
+                    FlowRow(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        step.expectedKeywords.forEach { keyword ->
+                            Surface(
+                                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f),
+                                shape = CircleShape
+                            ) {
+                                Text(
+                                    text = keyword.uppercase(),
+                                    style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold),
+                                    color = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier
+                                        .padding(horizontal = 12.dp, vertical = 6.dp)
+                                )
+                            }
+                        }
+                    }
                 }
+
                 is EmergencyStep.Popup -> {
                     Spacer(modifier = Modifier.height(12.dp))
+                    val pulse = remember { Animatable(1f) }
+
+                    // gentle pulse animation on YES/NO
+                    LaunchedEffect(Unit) {
+                        while (true) {
+                            pulse.animateTo(1.1f, tween(600))
+                            pulse.animateTo(1f, tween(600))
+                        }
+                    }
+
                     Row(
-                        horizontalArrangement = Arrangement.spacedBy(16.dp)
+                        horizontalArrangement = Arrangement.spacedBy(24.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.scale(pulse.value)
                     ) {
                         Text(
                             text = "YES",
-                            style = MaterialTheme.typography.headlineMedium,
-                            fontWeight = FontWeight.Bold,
+                            style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
                             color = MaterialTheme.colorScheme.primary
                         )
                         Text(
                             text = "•",
-                            style = MaterialTheme.typography.headlineMedium
+                            style = MaterialTheme.typography.titleLarge.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)
                         )
                         Text(
                             text = "NO",
-                            style = MaterialTheme.typography.headlineMedium,
-                            fontWeight = FontWeight.Bold,
+                            style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
                             color = MaterialTheme.colorScheme.error
                         )
                     }
                 }
-                else -> {}
+
+                else -> {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = "Listening for your voice...",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
             }
 
+            // 💡 Voice hint
             voiceHint?.let {
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(10.dp))
                 HorizontalDivider(
                     modifier = Modifier.padding(vertical = 8.dp),
-                    thickness = DividerDefaults.Thickness,
-                    color = DividerDefaults.color
+                    thickness = 0.8.dp,
+                    color = MaterialTheme.colorScheme.outlineVariant
                 )
                 Text(
                     text = "💡 $it",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.error,
-                    textAlign = TextAlign.Center
+                    style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Medium),
+                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
                 )
             }
 
+            // ℹ️ Footer hint
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = "👆 Swipe or use buttons if voice isn't working",
+                text = "👆 Swipe or use buttons if voice isn’t working",
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
                 textAlign = TextAlign.Center
