@@ -82,12 +82,30 @@ class InstructionViewModel @Inject constructor(
         observePreferences()
         observeTtsEvents()
         observeVoiceCommands()
+        observeTtsState()
         initializeAudio()
     }
 
     private fun initializeAudio() {
         viewModelScope.launch {
             audioSessionManager.initialize()
+        }
+    }
+
+    private fun observeTtsState() {
+        viewModelScope.launch {
+            ttsManager.isSpeaking.collect { isSpeaking ->
+                if (isSpeaking) {
+                    // TTS started - pause ASR to prevent feedback
+                    audioSessionManager.pauseForTts()
+                    Timber.d("🔇 ASR paused - TTS is speaking")
+                } else {
+                    // TTS stopped - resume ASR after cooldown
+                    delay(500) // 500ms cooldown to ensure TTS audio clears
+                    audioSessionManager.resumeAfterTts()
+                    Timber.d("🔊 ASR resumed - TTS finished")
+                }
+            }
         }
     }
 
@@ -108,7 +126,23 @@ class InstructionViewModel @Inject constructor(
         }
     }
 
+    private var lastTtsCompletionTime = 0L
+    private val TTS_COOLDOWN_MS = 500L
+
     private fun handleVoiceIntent(intent: VoiceIntent) {
+        // 🔧 NEW: Ignore commands within cooldown period after TTS
+        val currentTime = System.currentTimeMillis()
+        if (currentTime - lastTtsCompletionTime < TTS_COOLDOWN_MS) {
+            Timber.d("⏳ Ignoring voice command during TTS cooldown (${currentTime - lastTtsCompletionTime}ms)")
+            return
+        }
+
+        // 🔧 NEW: Ignore if TTS is currently speaking
+        if (ttsManager.isSpeaking.value) {
+            Timber.d("🔇 Ignoring voice command - TTS is speaking")
+            return
+        }
+
         Timber.d("Handling voice intent: $intent")
 
         when (intent) {
@@ -191,6 +225,7 @@ class InstructionViewModel @Inject constructor(
             ttsManager.ttsEvents.collect { event ->
                 when (event) {
                     is TtsEvent.Completed -> {
+                        lastTtsCompletionTime = System.currentTimeMillis() // 🔧 Track completion
                         if (autoAdvanceEnabled.value && isEmergencyMode) {
                             val currentStep = protocol?.steps?.getOrNull(_currentStepIndex.value)
                             currentStep?.durationSeconds?.let { duration ->

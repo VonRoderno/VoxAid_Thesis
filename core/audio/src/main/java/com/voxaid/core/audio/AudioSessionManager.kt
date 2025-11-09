@@ -22,6 +22,8 @@ import javax.inject.Singleton
  * Manages audio session lifecycle and configuration.
  * Handles audio focus, routing, and lifecycle events.
  * Integrates WebRTC audio processing for noise suppression.
+ *
+ * 🔧 FIXED: Added TTS coordination to prevent feedback loop
  */
 @Singleton
 class AudioSessionManager @Inject constructor(
@@ -39,6 +41,9 @@ class AudioSessionManager @Inject constructor(
 
     private var audioConfig = AudioConfig()
     private var isSessionActive = false
+
+    // 🔧 NEW: Track if we're currently paused due to TTS
+    private var isPausedForTts = false
 
     /**
      * Initializes the audio session with WebRTC processing.
@@ -71,7 +76,7 @@ class AudioSessionManager @Inject constructor(
      * Starts the audio session and ASR with WebRTC processing.
      */
     fun startSession() {
-        // 🔍 Check microphone permission
+        // Check microphone permission
         val permissionGranted = ContextCompat.checkSelfPermission(
             context,
             Manifest.permission.RECORD_AUDIO
@@ -94,8 +99,6 @@ class AudioSessionManager @Inject constructor(
         requestAudioFocus()
 
         // Initialize WebRTC audio processing
-        // Note: Audio session ID will be obtained from SpeechService internally
-        // WebRTC effects are automatically applied when attached
         val webRtcResult = webRtcProcessor.initialize(0, audioConfig)
         if (webRtcResult.isSuccess) {
             val effectStatus = webRtcProcessor.getEffectStatus()
@@ -109,6 +112,7 @@ class AudioSessionManager @Inject constructor(
 
         if (isAsrListening) {
             isSessionActive = true
+            isPausedForTts = false // 🔧 Clear TTS pause flag
             _audioState.value = _audioState.value.copy(
                 isRecording = true,
                 isListening = true
@@ -138,6 +142,7 @@ class AudioSessionManager @Inject constructor(
         abandonAudioFocus()
 
         isSessionActive = false
+        isPausedForTts = false // 🔧 Clear TTS pause flag
         _audioState.value = _audioState.value.copy(
             isRecording = false,
             isListening = false
@@ -162,6 +167,50 @@ class AudioSessionManager @Inject constructor(
         asrManager.start()
         _audioState.value = _audioState.value.copy(isListening = true)
         Timber.d("Audio session resumed")
+    }
+
+    // 🔧 NEW: Pause ASR specifically for TTS output
+    /**
+     * Pauses ASR to prevent TTS feedback loop.
+     * Call this when TTS starts speaking.
+     */
+    fun pauseForTts() {
+        if (!isSessionActive) {
+            Timber.d("Session not active, skipping TTS pause")
+            return
+        }
+
+        if (isPausedForTts) {
+            Timber.d("Already paused for TTS")
+            return
+        }
+
+        Timber.d("⏸️ Pausing ASR for TTS output")
+        asrManager.pause()
+        isPausedForTts = true
+        _audioState.value = _audioState.value.copy(isListening = false)
+    }
+
+    // 🔧 NEW: Resume ASR after TTS completes
+    /**
+     * Resumes ASR after TTS completes.
+     * Call this when TTS finishes speaking.
+     */
+    fun resumeAfterTts() {
+        if (!isSessionActive) {
+            Timber.d("Session not active, skipping TTS resume")
+            return
+        }
+
+        if (!isPausedForTts) {
+            Timber.d("Not paused for TTS, skipping resume")
+            return
+        }
+
+        Timber.d("▶️ Resuming ASR after TTS")
+        asrManager.start()
+        isPausedForTts = false
+        _audioState.value = _audioState.value.copy(isListening = true)
     }
 
     /**
@@ -192,7 +241,7 @@ class AudioSessionManager @Inject constructor(
 
     override fun onResume(owner: LifecycleOwner) {
         super.onResume(owner)
-        if (isSessionActive) {
+        if (isSessionActive && !isPausedForTts) {
             resumeSession()
             Timber.d("Audio session resumed (lifecycle)")
         }

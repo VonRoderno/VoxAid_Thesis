@@ -42,39 +42,21 @@ class EmergencyViewModel @Inject constructor(
 
     // ==================== CPR TIMER STATE ====================
 
-    /**
-     * Elapsed time in compression cycle (resets every 2 minutes or on switch)
-     */
     private val _compressionCycleTime = MutableStateFlow(0)
     val compressionCycleTime: StateFlow<Int> = _compressionCycleTime.asStateFlow()
 
-    /**
-     * Show 1:40 warning banner
-     */
     private val _showSwitchWarning = MutableStateFlow(false)
     val showSwitchWarning: StateFlow<Boolean> = _showSwitchWarning.asStateFlow()
 
-    /**
-     * Show 2-minute rescuer switch dialog
-     */
     private val _showRescuerDialog = MutableStateFlow(false)
     val showRescuerDialog: StateFlow<Boolean> = _showRescuerDialog.asStateFlow()
 
-    /**
-     * Show exhaustion check for solo rescuers
-     */
     private val _showContinueDialog = MutableStateFlow(false)
     val showContinueDialog: StateFlow<Boolean> = _showContinueDialog.asStateFlow()
 
-    /**
-     * Show switching rescuer overlay (5 seconds)
-     */
     private val _showSwitchOverlay = MutableStateFlow(false)
     val showSwitchOverlay: StateFlow<Boolean> = _showSwitchOverlay.asStateFlow()
 
-    /**
-     * Show final exhaustion message
-     */
     private val _showExhaustionMessage = MutableStateFlow(false)
     val showExhaustionMessage: StateFlow<Boolean> = _showExhaustionMessage.asStateFlow()
 
@@ -110,6 +92,7 @@ class EmergencyViewModel @Inject constructor(
     init {
         loadEmergencyProtocol()
         observeVoiceCommands()
+        observeTtsState()
         initializeAudio()
     }
 
@@ -118,11 +101,6 @@ class EmergencyViewModel @Inject constructor(
     /**
      * Starts the compression cycle timer.
      * Called when entering "Chest Compression" step.
-     *
-     * Timeline:
-     * - 0:00 - 1:40: Normal compressions
-     * - 1:40: Show warning banner + subtle cue
-     * - 2:00: Pause and show rescuer dialog
      */
     private fun startCompressionCycleTimer() {
         stopCompressionCycleTimer()
@@ -146,20 +124,18 @@ class EmergencyViewModel @Inject constructor(
                         Timber.d("CPR Timer: 1:40 warning triggered")
                     }
                     120 -> {
-                        // 2:00 - Pause and show dialog
+                        // 🔧 FIX: Pause compressions and STOP timer before showing dialog
                         pauseCompressions()
+                        stopCompressionCycleTimer()
                         _showRescuerDialog.value = true
                         ttsManager.speak("Two minutes elapsed. Are you with someone?")
-                        Timber.d("CPR Timer: 2:00 rescuer check triggered")
+                        Timber.d("CPR Timer: 2:00 rescuer check triggered - timer stopped")
                     }
                 }
             }
         }
     }
 
-    /**
-     * Stops and resets compression timer.
-     */
     private fun stopCompressionCycleTimer() {
         compressionTimerJob?.cancel()
         compressionTimerJob = null
@@ -167,10 +143,6 @@ class EmergencyViewModel @Inject constructor(
         _showSwitchWarning.value = false
     }
 
-    /**
-     * Resets timer and resumes compressions.
-     * Called after switching rescuers or choosing to continue.
-     */
     private fun resetAndResumeCompressions() {
         _showRescuerDialog.value = false
         _showContinueDialog.value = false
@@ -187,41 +159,23 @@ class EmergencyViewModel @Inject constructor(
         Timber.d("CPR Timer: Reset and resumed compressions")
     }
 
-    /**
-     * Pauses metronome and voice guidance during dialogs.
-     */
     private fun pauseCompressions() {
         _isMetronomeActive.value = false
         ttsManager.stop()
     }
 
-    /**
-     * Resumes metronome and voice guidance.
-     */
     private fun resumeCompressions() {
-        ttsManager.speak("Continue with the step")
+        // Re-enable metronome
+        _isMetronomeActive.value = true
+        ttsManager.speak("Continue chest compressions")
     }
 
-    /**
-     * Plays subtle audio cue at 1:40.
-     * Uses a brief, calm tone instead of jarring beep.
-     */
     private fun playSwitchWarningCue() {
-        // TODO: Implement gentle audio cue
-        // Could use short ascending tone or subtle chime
-        // Avoid harsh beeps - keep it calm and reassuring
-
-        // Placeholder: Use system notification sound or haptic feedback
-        // In production: Load custom audio asset
         Timber.d("Playing switch warning audio cue")
     }
 
     // ==================== DIALOG HANDLERS ====================
 
-    /**
-     * User confirms they are with someone.
-     * Show 5-second switch overlay, then resume.
-     */
     fun onWithHelp() {
         _showRescuerDialog.value = false
         _showSwitchOverlay.value = true
@@ -234,10 +188,6 @@ class EmergencyViewModel @Inject constructor(
         }
     }
 
-    /**
-     * User confirms they are alone.
-     * Show exhaustion check dialog.
-     */
     fun onAlone() {
         _showRescuerDialog.value = false
         _showContinueDialog.value = true
@@ -245,10 +195,6 @@ class EmergencyViewModel @Inject constructor(
         ttsManager.speak("Can you continue giving chest compressions?")
     }
 
-    /**
-     * Solo rescuer chooses to continue.
-     * Reset timer and resume.
-     */
     fun onContinueCompressions() {
         _showContinueDialog.value = false
         resetAndResumeCompressions()
@@ -257,10 +203,6 @@ class EmergencyViewModel @Inject constructor(
         Timber.d("Solo rescuer continuing compressions")
     }
 
-    /**
-     * Solo rescuer is exhausted and needs to stop.
-     * Show final encouragement message.
-     */
     fun onStopExhausted() {
         _showContinueDialog.value = false
         _showExhaustionMessage.value = true
@@ -272,15 +214,10 @@ class EmergencyViewModel @Inject constructor(
         Timber.d("Solo rescuer stopped - exhausted")
     }
 
-    /**
-     * End session from exhaustion message.
-     */
     fun onEndSession() {
         _showExhaustionMessage.value = false
         stopListening()
-        // Navigation will be handled by screen
     }
-
 
     private fun initializeAudio() {
         viewModelScope.launch {
@@ -288,6 +225,22 @@ class EmergencyViewModel @Inject constructor(
         }
     }
 
+    private fun observeTtsState() {
+        viewModelScope.launch {
+            ttsManager.isSpeaking.collect { isSpeaking ->
+                if (isSpeaking) {
+                    // TTS started - pause ASR to prevent feedback
+                    audioSessionManager.pauseForTts()
+                    Timber.d("🔇 ASR paused - TTS is speaking")
+                } else {
+                    // TTS stopped - resume ASR after cooldown
+                    delay(500) // 500ms cooldown to ensure TTS audio clears
+                    audioSessionManager.resumeAfterTts()
+                    Timber.d("🔊 ASR resumed - TTS finished")
+                }
+            }
+        }
+    }
     @OptIn(ExperimentalCoroutinesApi::class)
     private fun observeVoiceCommands() {
         viewModelScope.launch {
@@ -305,37 +258,45 @@ class EmergencyViewModel @Inject constructor(
         }
     }
 
+    private var lastTtsCompletionTime = 0L
+    private val TTS_COOLDOWN_MS = 500L
+
+    // 🔧 UPDATE: Enhanced handleVoiceIntent with TTS awareness
     private fun handleVoiceIntent(intent: VoiceIntent) {
         Timber.d("Emergency voice intent received: $intent")
 
-        // Handle dialog-specific voice commands
-        if (_showRescuerDialog.value) {
-            when (intent) {
-                is VoiceIntent.Yes -> onWithHelp()
-                is VoiceIntent.No -> onAlone()
-                is VoiceIntent.NotAlone -> onWithHelp()
-                is VoiceIntent.Alone -> onAlone()
-                else -> {}
-            }
+        // 🔧 NEW: Ignore commands within cooldown period after TTS
+        val currentTime = System.currentTimeMillis()
+        if (currentTime - lastTtsCompletionTime < TTS_COOLDOWN_MS) {
+            Timber.d("⏳ Ignoring voice command during TTS cooldown (${currentTime - lastTtsCompletionTime}ms)")
             return
         }
 
-        if (_showContinueDialog.value) {
-            when (intent) {
-                is VoiceIntent.Yes, is VoiceIntent.Continue -> onContinueCompressions()
-                is VoiceIntent.No, is VoiceIntent.Stop -> onStopExhausted()
-                else -> {}
-            }
+        // 🔧 NEW: Ignore if TTS is currently speaking
+        if (ttsManager.isSpeaking.value) {
+            Timber.d("🔇 Ignoring voice command - TTS is speaking")
             return
         }
 
-        // Standard navigation commands
+        // Check if ANY dialog is showing before processing commands
+        if (isDialogActive()) {
+            handleDialogVoiceCommand(intent)
+            return
+        }
+
+        // Prevent navigation during switch overlay
+        if (_showSwitchOverlay.value) {
+            Timber.d("Ignoring voice command during rescuer switch overlay")
+            return
+        }
+
+        // Standard navigation commands (only if no dialogs active)
         when (intent) {
             is VoiceIntent.NextStep -> {
-                stepEngine?.isWaitingForVoiceInput()?.let {
-                    if (!it) {
-                        nextStep()
-                    }
+                if (!stepEngine?.isWaitingForVoiceInput()!!) {
+                    nextStep()
+                } else {
+                    Timber.d("Ignored NextStep - waiting for voice trigger")
                 }
             }
             is VoiceIntent.PreviousStep -> previousStep()
@@ -345,22 +306,8 @@ class EmergencyViewModel @Inject constructor(
             is VoiceIntent.SafeClear -> handleEmergencyKeyword("safe")
             is VoiceIntent.Yes -> handleEmergencyKeyword("yes")
             is VoiceIntent.No -> handleEmergencyKeyword("no")
-
-            // Response check keywords (tap_shout step)
-            is VoiceIntent.Responsive -> {
-                val handled = handleEmergencyKeyword("responsive")
-                if (handled) {
-                    Timber.i("Patient responsive - navigating to recovery")
-                }
-            }
-            is VoiceIntent.Unresponsive -> {
-                val handled = handleEmergencyKeyword("unresponsive")
-                if (handled) {
-                    Timber.i("Patient unresponsive - continuing CPR cycle")
-                }
-            }
-
-            // Other emergency keywords
+            is VoiceIntent.Responsive -> handleEmergencyKeyword("responsive")
+            is VoiceIntent.Unresponsive -> handleEmergencyKeyword("unresponsive")
             is VoiceIntent.Alone -> handleEmergencyKeyword("alone")
             is VoiceIntent.NotAlone -> handleEmergencyKeyword("not alone")
             is VoiceIntent.Continue -> handleEmergencyKeyword("continue")
@@ -380,6 +327,42 @@ class EmergencyViewModel @Inject constructor(
             }
 
             else -> Timber.d("Unhandled voice intent in emergency mode: $intent")
+        }
+    }
+
+    /**
+     * 🔧 NEW: Helper to check if any dialog is currently active
+     */
+    private fun isDialogActive(): Boolean {
+        return _showRescuerDialog.value ||
+                _showContinueDialog.value ||
+                _showExhaustionMessage.value ||
+                _showPopup.value != null ||
+                _show911Dialog.value
+    }
+
+    /**
+     * 🔧 NEW: Handle voice commands specifically for active dialogs
+     */
+    private fun handleDialogVoiceCommand(intent: VoiceIntent) {
+        when {
+            _showRescuerDialog.value -> {
+                when (intent) {
+                    is VoiceIntent.Yes, is VoiceIntent.NotAlone -> onWithHelp()
+                    is VoiceIntent.No, is VoiceIntent.Alone -> onAlone()
+                    else -> Timber.d("Ignored command during rescuer dialog: $intent")
+                }
+            }
+            _showContinueDialog.value -> {
+                when (intent) {
+                    is VoiceIntent.Yes, is VoiceIntent.Continue -> onContinueCompressions()
+                    is VoiceIntent.No, is VoiceIntent.Stop -> onStopExhausted()
+                    else -> Timber.d("Ignored command during continue dialog: $intent")
+                }
+            }
+            else -> {
+                Timber.d("Dialog active but no specific handler - ignored: $intent")
+            }
         }
     }
 
@@ -408,7 +391,6 @@ class EmergencyViewModel @Inject constructor(
     private fun getExpectedKeywordsHint(step: EmergencyStep): String {
         return when (step) {
             is EmergencyStep.VoiceTrigger -> {
-                // Special hint for tap_shout step
                 if (step.stepId == "tap_shout") {
                     "YES or NO"
                 } else {
@@ -488,29 +470,18 @@ class EmergencyViewModel @Inject constructor(
     private fun handleStepTransition(step: EmergencyStep?) {
         step ?: return
 
-
         // Start compression timer only once when entering compression step
         if ((step.stepId == "chest_compressions" ||
                     (step is EmergencyStep.Timed && step.title.contains("Compression", ignoreCase = true)))
-            && compressionTimerJob == null // prevent restarting
+            && compressionTimerJob == null
         ) {
             startCompressionCycleTimer()
             Timber.d("Entered compression step - timer started")
         }
-//        // Check if we're entering chest compression step
-//        if (step.stepId == "chest_compressions" ||
-//            (step is EmergencyStep.Timed && step.title.contains("Compression", ignoreCase = true))) {
-//            startCompressionCycleTimer()
-//            Timber.d("Entered compression step - timer started")
-//        } else {
-//            // Stop timer if leaving compression step
-//            if (_compressionCycleTime.value > 0) {
-//                stopCompressionCycleTimer()
-//                Timber.d("Left compression step - timer stopped")
-//            }
-//        }
 
         ttsManager.speak(step.voicePrompt)
+        // 🔧 NEW: Track TTS start time
+        lastTtsCompletionTime = System.currentTimeMillis()
 
         when (step) {
             is EmergencyStep.Popup -> {
@@ -559,6 +530,12 @@ class EmergencyViewModel @Inject constructor(
     }
 
     fun nextStep() {
+        // 🔧 FIX: Additional guard - don't advance if dialogs are showing
+        if (isDialogActive()) {
+            Timber.w("Blocked nextStep() - dialog is active")
+            return
+        }
+
         Timber.d("Manual next step triggered")
         val success = stepEngine?.nextStep() ?: false
         if (!success) {
@@ -568,7 +545,7 @@ class EmergencyViewModel @Inject constructor(
 
     fun previousStep() {
         Timber.d("Manual previous step triggered")
-        val success = stepEngine?.previousStep() ?: false
+        stepEngine?.previousStep()
     }
 
     fun repeatStep() {

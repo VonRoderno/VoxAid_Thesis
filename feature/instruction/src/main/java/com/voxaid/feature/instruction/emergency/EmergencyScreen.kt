@@ -38,7 +38,6 @@ import com.voxaid.core.design.components.GifImage
 import com.voxaid.core.design.components.VoxAidTopBar
 import com.voxaid.core.design.theme.VoxAidTheme
 import com.voxaid.core.design.util.AnimationConfig
-import com.voxaid.feature.instruction.components.Metronome
 import com.voxaid.feature.instruction.emergency.components.*
 import timber.log.Timber
 import androidx.core.net.toUri
