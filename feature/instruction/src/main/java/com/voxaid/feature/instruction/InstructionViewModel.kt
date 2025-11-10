@@ -22,11 +22,6 @@ import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
 
-/**
- * ViewModel for instruction screen.
- * Manages protocol data, step navigation, TTS, ASR, voice commands,
- * and protocol completion tracking.
- */
 @HiltViewModel
 class InstructionViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
@@ -38,7 +33,6 @@ class InstructionViewModel @Inject constructor(
     private val emergencyUnlockManager: EmergencyUnlockManager
 ) : ViewModel() {
 
-    // Get navigation arguments from SavedStateHandle
     private val mode: String = savedStateHandle.get<String>("mode") ?: "instructional"
     private val variantId: String = savedStateHandle.get<String>("variant") ?: "cpr_1person"
 
@@ -52,22 +46,22 @@ class InstructionViewModel @Inject constructor(
 
     private var protocol: Protocol? = null
 
-    private val ttsEnabled = MutableStateFlow(true)
+    // 🔧 NEW: Expose TTS enabled state
+    val ttsEnabled = preferencesManager.ttsEnabled
+        .stateIn(viewModelScope, SharingStarted.Eagerly, true)
+
     private val autoAdvanceEnabled = MutableStateFlow(isEmergencyMode)
 
     val audioState = audioSessionManager.audioState
 
-    // Metronome state
     private val _isMetronomeActive = MutableStateFlow(false)
     val isMetronomeActive: StateFlow<Boolean> = _isMetronomeActive.asStateFlow()
 
-    val metronomeBpm: Int = 110 // CPR recommended rate
+    val metronomeBpm: Int = 110
 
-    // 911 dialog state
     private val _show911Dialog = MutableStateFlow(false)
     val show911Dialog: StateFlow<Boolean> = _show911Dialog.asStateFlow()
 
-    // Completion dialog state
     private val _showCompletionDialog = MutableStateFlow(false)
     val showCompletionDialog: StateFlow<Boolean> = _showCompletionDialog.asStateFlow()
 
@@ -77,6 +71,7 @@ class InstructionViewModel @Inject constructor(
     fun dismissEmergencyUnlockedDialog() {
         _showEmergencyUnlockedDialog.value = false
     }
+
     init {
         loadProtocol()
         observePreferences()
@@ -92,18 +87,28 @@ class InstructionViewModel @Inject constructor(
         }
     }
 
+    // 🔧 UPDATED: Only pause ASR if TTS is enabled
     private fun observeTtsState() {
         viewModelScope.launch {
-            ttsManager.isSpeaking.collect { isSpeaking ->
-                if (isSpeaking) {
-                    // TTS started - pause ASR to prevent feedback
-                    audioSessionManager.pauseForTts()
-                    Timber.d("🔇 ASR paused - TTS is speaking")
+            combine(
+                ttsManager.isSpeaking,
+                ttsEnabled
+            ) { isSpeaking, enabled ->
+                Pair(isSpeaking, enabled)
+            }.collect { (isSpeaking, enabled) ->
+                // Only coordinate with ASR if TTS is actually enabled
+                if (enabled) {
+                    if (isSpeaking) {
+                        audioSessionManager.pauseForTts()
+                        Timber.d("🔇 ASR paused - TTS is speaking")
+                    } else {
+                        delay(500)
+                        audioSessionManager.resumeAfterTts()
+                        Timber.d("🔊 ASR resumed - TTS finished")
+                    }
                 } else {
-                    // TTS stopped - resume ASR after cooldown
-                    delay(500) // 500ms cooldown to ensure TTS audio clears
-                    audioSessionManager.resumeAfterTts()
-                    Timber.d("🔊 ASR resumed - TTS finished")
+                    // TTS disabled - ensure ASR is always active
+                    Timber.d("🎤 TTS disabled - ASR stays active")
                 }
             }
         }
@@ -130,17 +135,18 @@ class InstructionViewModel @Inject constructor(
     private val TTS_COOLDOWN_MS = 500L
 
     private fun handleVoiceIntent(intent: VoiceIntent) {
-        // 🔧 NEW: Ignore commands within cooldown period after TTS
-        val currentTime = System.currentTimeMillis()
-        if (currentTime - lastTtsCompletionTime < TTS_COOLDOWN_MS) {
-            Timber.d("⏳ Ignoring voice command during TTS cooldown (${currentTime - lastTtsCompletionTime}ms)")
-            return
-        }
+        // 🔧 UPDATED: Skip cooldown check if TTS is disabled
+        if (ttsEnabled.value) {
+            val currentTime = System.currentTimeMillis()
+            if (currentTime - lastTtsCompletionTime < TTS_COOLDOWN_MS) {
+                Timber.d("⏳ Ignoring voice command during TTS cooldown")
+                return
+            }
 
-        // 🔧 NEW: Ignore if TTS is currently speaking
-        if (ttsManager.isSpeaking.value) {
-            Timber.d("🔇 Ignoring voice command - TTS is speaking")
-            return
+            if (ttsManager.isSpeaking.value) {
+                Timber.d("🔇 Ignoring voice command - TTS is speaking")
+                return
+            }
         }
 
         Timber.d("Handling voice intent: $intent")
@@ -206,13 +212,6 @@ class InstructionViewModel @Inject constructor(
 
     private fun observePreferences() {
         viewModelScope.launch {
-            preferencesManager.ttsEnabled.collect { enabled ->
-                ttsEnabled.value = enabled
-                Timber.d("TTS enabled: $enabled")
-            }
-        }
-
-        viewModelScope.launch {
             preferencesManager.autoAdvanceEnabled.collect { enabled ->
                 autoAdvanceEnabled.value = enabled && isEmergencyMode
                 Timber.d("Auto-advance enabled: $enabled")
@@ -225,7 +224,7 @@ class InstructionViewModel @Inject constructor(
             ttsManager.ttsEvents.collect { event ->
                 when (event) {
                     is TtsEvent.Completed -> {
-                        lastTtsCompletionTime = System.currentTimeMillis() // 🔧 Track completion
+                        lastTtsCompletionTime = System.currentTimeMillis()
                         if (autoAdvanceEnabled.value && isEmergencyMode) {
                             val currentStep = protocol?.steps?.getOrNull(_currentStepIndex.value)
                             currentStep?.durationSeconds?.let { duration ->
@@ -254,12 +253,11 @@ class InstructionViewModel @Inject constructor(
                         currentStep = loadedProtocol.steps[0]
                     )
 
-                    // Speak first step if TTS enabled
+                    // 🔧 UPDATED: Only speak if TTS enabled
                     if (ttsEnabled.value) {
                         speakStep(loadedProtocol.steps[0])
                     }
 
-                    // Update progress tracking
                     if (!isEmergencyMode) {
                         completionManager.updateProgress(variantId, 0)
                     }
@@ -288,40 +286,31 @@ class InstructionViewModel @Inject constructor(
                 currentStep = nextStep
             )
 
+            // 🔧 UPDATED: Only speak if TTS enabled
             if (ttsEnabled.value) {
                 speakStep(nextStep)
             }
 
-            // Update progress in instructional mode
             if (!isEmergencyMode) {
                 viewModelScope.launch {
                     completionManager.updateProgress(variantId, nextIndex)
                 }
             }
 
-            // Check if this is the final step in instructional mode
             if (!isEmergencyMode && nextIndex == currentProtocol.steps.size - 1) {
                 markProtocolAsCompleted()
             }
 
             Timber.d("Moved to step $nextIndex")
-        } else {
-            Timber.d("Already at last step")
         }
     }
 
-    /**
-     * Marks the protocol as completed and unlocks it for emergency mode.
-     * Called when user reaches the final step in instructional mode.
-     */
     private fun markProtocolAsCompleted() {
         viewModelScope.launch {
             when (val result = completionManager.markAsCompleted(variantId)) {
                 is UnlockResult.NewlyUnlocked -> {
                     Timber.i("Protocol $variantId newly unlocked!")
                     _showCompletionDialog.value = true
-
-                    // Check if emergency mode was unlocked
                     checkEmergencyUnlock()
                 }
                 is UnlockResult.AlreadyUnlocked -> {
@@ -334,12 +323,8 @@ class InstructionViewModel @Inject constructor(
         }
     }
 
-    /**
-     * After marking protocol as completed, check if emergency mode was unlocked.
-     */
     private fun checkEmergencyUnlock() {
         viewModelScope.launch {
-            // Import EmergencyUnlockManager via constructor injection first
             val protocolCategory = when {
                 variantId.contains("cpr") -> "cpr"
                 variantId.contains("heimlich") -> "heimlich"
@@ -352,7 +337,6 @@ class InstructionViewModel @Inject constructor(
 
                 if (wasUnlocked) {
                     Timber.i("🎉 Emergency mode unlocked for $category!")
-                    // Show celebration dialog
                     _showEmergencyUnlockedDialog.value = true
                 }
             }
@@ -372,6 +356,7 @@ class InstructionViewModel @Inject constructor(
                 currentStep = prevStep
             )
 
+            // 🔧 UPDATED: Only speak if TTS enabled
             if (ttsEnabled.value) {
                 speakStep(prevStep)
             }
@@ -384,6 +369,7 @@ class InstructionViewModel @Inject constructor(
         val currentProtocol = protocol ?: return
         val currentStep = currentProtocol.steps.getOrNull(_currentStepIndex.value) ?: return
 
+        // 🔧 UPDATED: Only speak if TTS enabled
         if (ttsEnabled.value) {
             speakStep(currentStep)
         }
@@ -403,18 +389,17 @@ class InstructionViewModel @Inject constructor(
                 currentStep = step
             )
 
+            // 🔧 UPDATED: Only speak if TTS enabled
             if (ttsEnabled.value) {
                 speakStep(step)
             }
 
-            // Update progress
             if (!isEmergencyMode) {
                 viewModelScope.launch {
                     completionManager.updateProgress(variantId, stepIndex)
                 }
             }
 
-            // Check if jumped to final step
             if (!isEmergencyMode && stepIndex == currentProtocol.steps.size - 1) {
                 markProtocolAsCompleted()
             }
@@ -427,6 +412,7 @@ class InstructionViewModel @Inject constructor(
         ttsManager.speak(step.voicePrompt)
     }
 
+    // 🔧 NEW: Toggle TTS on/off
     fun toggleTts() {
         viewModelScope.launch {
             val newValue = !ttsEnabled.value
@@ -434,6 +420,12 @@ class InstructionViewModel @Inject constructor(
 
             if (!newValue) {
                 ttsManager.stop()
+                Timber.i("🔇 TTS disabled by user")
+            } else {
+                Timber.i("🔊 TTS enabled by user")
+                // Speak current step if enabled
+                val currentStep = protocol?.steps?.getOrNull(_currentStepIndex.value)
+                currentStep?.let { speakStep(it) }
             }
         }
     }
@@ -450,9 +442,6 @@ class InstructionViewModel @Inject constructor(
     }
 }
 
-/**
- * UI state for instruction screen.
- */
 sealed class InstructionUiState {
     data object Loading : InstructionUiState()
     data class Success(

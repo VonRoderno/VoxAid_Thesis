@@ -41,7 +41,7 @@ fun LoadingScreen(
             verticalArrangement = Arrangement.Center,
             modifier = Modifier.padding(32.dp)
         ) {
-            // VoxAid Logo/Branding
+            // Branding
             Text(
                 text = "VoxAid",
                 style = MaterialTheme.typography.displayLarge,
@@ -60,11 +60,27 @@ fun LoadingScreen(
 
             Spacer(modifier = Modifier.height(48.dp))
 
-            if (uiState is LoadingUiState.Loading) {
-                CircularProgressIndicator(
-                    modifier = Modifier.size(48.dp),
-                    color = MaterialTheme.colorScheme.primary
-                )
+            when (uiState) {
+                is LoadingUiState.Loading -> {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(48.dp),
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
+                is LoadingUiState.Error -> {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text(
+                            text = (uiState as LoadingUiState.Error).message,
+                            color = MaterialTheme.colorScheme.error,
+                            textAlign = TextAlign.Center
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Button(onClick = { onNavigateToMenu() }) {
+                            Text("Proceed Anyway")
+                        }
+                    }
+                }
+                else -> {}
             }
         }
     }
@@ -91,6 +107,7 @@ fun LoadingScreen(
         )
     }
 }
+
 
 @Preview(showBackground = true)
 @Composable

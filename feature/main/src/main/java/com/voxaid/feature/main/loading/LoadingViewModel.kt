@@ -7,16 +7,14 @@ import com.voxaid.core.common.model.UpdateCheckResult
 import com.voxaid.core.common.model.UpdateInfo
 import com.voxaid.core.common.network.UpdateCheckService
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 import javax.inject.Inject
 
-/**
- * ViewModel for loading screen.
- * Handles update checks and disclaimer state.
- */
 @HiltViewModel
 class LoadingViewModel @Inject constructor(
     private val updateCheckService: UpdateCheckService,
@@ -30,68 +28,78 @@ class LoadingViewModel @Inject constructor(
     val disclaimerAccepted: StateFlow<Boolean> = _disclaimerAccepted.asStateFlow()
 
     init {
-        checkDisclaimerAndUpdate()
+        initLoadingSequence()
     }
 
-    private fun checkDisclaimerAndUpdate() {
+    private fun initLoadingSequence() {
         viewModelScope.launch {
-            // Check if disclaimer was accepted
-            preferencesManager.disclaimerAccepted.first().also { accepted ->
+            try {
+                // Safely get disclaimer state
+                val accepted = withContext(Dispatchers.IO) {
+                    preferencesManager.disclaimerAccepted.firstOrNull() ?: false
+                }
                 _disclaimerAccepted.value = accepted
 
                 if (!accepted) {
-                    // Show disclaimer first
+                    Timber.d("Disclaimer not accepted - showing disclaimer")
                     _uiState.value = LoadingUiState.ShowDisclaimer
                     return@launch
                 }
-            }
 
-            // Minimum loading time for branding
-            delay(1000)
+                // Minimum branding delay
+                delay(1000)
 
-            // Check for updates
-            when (val result = updateCheckService.checkForUpdate()) {
-                is UpdateCheckResult.UpdateAvailable -> {
-                    Timber.i("Update available: ${result.updateInfo.latestVersion}")
-                    _uiState.value = LoadingUiState.UpdateAvailable(result.updateInfo)
-                }
-                is UpdateCheckResult.NoUpdateNeeded -> {
-                    Timber.d("No update needed")
-                    _uiState.value = LoadingUiState.ReadyToProceed
-                }
-                is UpdateCheckResult.Error -> {
-                    Timber.w("Update check error: ${result.message}")
-                    // Don't block user, proceed anyway
-                    _uiState.value = LoadingUiState.ReadyToProceed
-                }
+                checkForUpdates()
+            } catch (e: Exception) {
+                Timber.e(e, "Error during loading sequence")
+                _uiState.value = LoadingUiState.ReadyToProceed
             }
         }
     }
 
     fun acceptDisclaimer() {
         viewModelScope.launch {
-            preferencesManager.setDisclaimerAccepted(true)
-            _disclaimerAccepted.value = true
-            _uiState.value = LoadingUiState.Loading
+            try {
+                withContext(Dispatchers.IO) {
+                    preferencesManager.setDisclaimerAccepted(true)
+                }
+                _disclaimerAccepted.value = true
+                _uiState.value = LoadingUiState.Loading
 
-            // After accepting, continue with update check
-            delay(500)
-            checkForUpdates()
+                // Short delay to allow UI transition
+                delay(500)
+                checkForUpdates()
+            } catch (e: Exception) {
+                Timber.e(e, "Error accepting disclaimer")
+                _uiState.value = LoadingUiState.ReadyToProceed
+            }
         }
     }
 
     private fun checkForUpdates() {
         viewModelScope.launch {
-            when (val result = updateCheckService.checkForUpdate()) {
-                is UpdateCheckResult.UpdateAvailable -> {
-                    _uiState.value = LoadingUiState.UpdateAvailable(result.updateInfo)
+            try {
+                val result = withContext(Dispatchers.IO) {
+                    updateCheckService.checkForUpdate()
                 }
-                is UpdateCheckResult.NoUpdateNeeded -> {
-                    _uiState.value = LoadingUiState.ReadyToProceed
+
+                when (result) {
+                    is UpdateCheckResult.UpdateAvailable -> {
+                        Timber.i("Update available: ${result.updateInfo.latestVersion}")
+                        _uiState.value = LoadingUiState.UpdateAvailable(result.updateInfo)
+                    }
+                    is UpdateCheckResult.NoUpdateNeeded -> {
+                        Timber.d("No update needed")
+                        _uiState.value = LoadingUiState.ReadyToProceed
+                    }
+                    is UpdateCheckResult.Error -> {
+                        Timber.w("Update check error: ${result.message}")
+                        _uiState.value = LoadingUiState.ReadyToProceed
+                    }
                 }
-                is UpdateCheckResult.Error -> {
-                    _uiState.value = LoadingUiState.ReadyToProceed
-                }
+            } catch (e: Exception) {
+                Timber.e(e, "Error during update check")
+                _uiState.value = LoadingUiState.ReadyToProceed
             }
         }
     }
@@ -99,14 +107,18 @@ class LoadingViewModel @Inject constructor(
     fun dismissUpdate() {
         _uiState.value = LoadingUiState.ReadyToProceed
     }
+
+    fun retryLoading() {
+        _uiState.value = LoadingUiState.Loading
+        initLoadingSequence()
+    }
 }
 
-/**
- * UI state for loading screen.
- */
+// --- UI state ---
 sealed class LoadingUiState {
     data object Loading : LoadingUiState()
     data object ShowDisclaimer : LoadingUiState()
     data class UpdateAvailable(val updateInfo: UpdateInfo) : LoadingUiState()
     data object ReadyToProceed : LoadingUiState()
+    data class Error(val message: String) : LoadingUiState()
 }

@@ -77,23 +77,45 @@ class EmergencyProtocolRepository @Inject constructor(
         val type = object : TypeToken<Map<String, Any>>() {}.type
         val json: Map<String, Any> = gson.fromJson(jsonString, type)
 
+        // Safely extract required fields with error logging
+        val protocolId = json["id"] as? String
+            ?: throw IllegalStateException("Protocol JSON missing required 'id' field")
+        val name = json["name"] as? String
+            ?: throw IllegalStateException("Protocol $protocolId missing required 'name' field")
+        val description = json["description"] as? String ?: ""
+        val category = json["category"] as? String
+            ?: throw IllegalStateException("Protocol $protocolId missing required 'category' field")
+        val initialStepId = json["initial_step_id"] as? String
+            ?: throw IllegalStateException("Protocol $protocolId missing required 'initial_step_id' field")
+        val warning = json["warning"] as? String
+        val metronomeBpm = (json["metronome_bpm"] as? Double)?.toInt()
+        val requiredLearningVariants = (json["required_learning_variants"] as? List<String>) ?: emptyList()
+        val emergencyNotes = (json["emergency_notes"] as? List<String>) ?: emptyList()
+
+        // Parse steps safely
         @Suppress("UNCHECKED_CAST")
-        val stepsMap = json["steps"] as? Map<String, Map<String, Any>> ?: emptyMap()
+        val stepsMap = json["steps"] as? Map<String, Map<String, Any>>
+            ?: throw IllegalStateException("Protocol $protocolId missing or invalid 'steps' object")
 
         val parsedSteps = stepsMap.mapValues { (stepId, stepJson) ->
-            gson.fromJson(gson.toJson(stepJson), EmergencyStepData::class.java)
+            try {
+                gson.fromJson(gson.toJson(stepJson), EmergencyStepData::class.java)
+            } catch (e: Exception) {
+                Timber.e(e, "Failed to parse step '$stepId' in protocol $protocolId")
+                throw IllegalStateException("Failed to parse step '$stepId' in protocol $protocolId")
+            }
         }
 
         return EmergencyProtocol(
-            id = json["id"] as String,
-            name = json["name"] as String,
-            description = json["description"] as String,
-            category = json["category"] as String,
-            requiredLearningVariants = (json["required_learning_variants"] as? List<String>) ?: emptyList(),
-            warning = json["warning"] as? String,
-            emergencyNotes = (json["emergency_notes"] as? List<String>) ?: emptyList(),
-            metronomeBpm = (json["metronome_bpm"] as? Double)?.toInt(),
-            initialStepId = json["initial_step_id"] as String,
+            id = protocolId,
+            name = name,
+            description = description,
+            category = category,
+            requiredLearningVariants = requiredLearningVariants,
+            warning = warning,
+            emergencyNotes = emergencyNotes,
+            metronomeBpm = metronomeBpm,
+            initialStepId = initialStepId,
             steps = parsedSteps
         )
     }

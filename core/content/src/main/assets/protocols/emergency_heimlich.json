@@ -1,88 +1,152 @@
 {
   "id": "emergency_heimlich",
   "name": "Emergency Heimlich Maneuver",
-  "description": "Fast-access choking response",
+  "description": "Fast-access choking response with two distinct paths",
   "category": "airway",
   "required_learning_variants": ["heimlich_self", "heimlich_others"],
   "warning": "⚠️ EMERGENCY MODE - Act quickly, choking is life-threatening",
   "emergency_notes": [
-    "Assess if person can cough",
-    "Use forceful thrusts",
-    "Continue until object expelled"
+    "Choose your situation: alone or helping someone",
+    "Follow on-screen swipes to progress",
+    "Continue thrusts until object is expelled"
   ],
-  "initial_step_id": "assess_choking",
-  "steps": {
-    "assess_choking": {
-      "step_type": "popup",
-      "title": "Is the Person Choking?",
-      "description": "Can they cough or speak?\n\nYES = Encourage coughing\nNO = Perform Heimlich",
-      "voice_prompt": "Can the person cough or speak? Say YES or NO.",
-      "animation_resource": "heimlich_other_1.gif",
-      "yes_next_step_id": "encourage_coughing",
-      "no_next_step_id": "check_self_or_other",
-      "yes_keywords": ["yes", "coughing", "speaking"],
-      "no_keywords": ["no", "silent", "cant"]
+  "metronome_bpm": 110,
+  "initial_step_id": "survey_scene",
+  "paths": {
+    "self": {
+      "name": "I am alone",
+      "description": "Performing Heimlich on yourself",
+      "steps": [
+        {
+          "id": "self_intro",
+          "step_number": 1,
+          "title": "If You Are Alone",
+          "description": "All functions are controllable by swipe.\n\nDo not give yourself water - it can make things worse.",
+          "voice_prompt": "All functions are controllable by swipe. Do not give yourself water, it can make things worse.",
+          "animation_resource": "heimlich_yself_1.gif",
+          "duration_seconds": 10,
+          "next_step_id": "self_find_surface"
+        },
+        {
+          "id": "self_find_surface",
+          "step_number": 2,
+          "title": "If You Can't Cough",
+          "description": "Find a hard surface at your belly height:\n• Table\n• Kitchen countertop\n• Chair back\n\nSwipe when you've found a surface.",
+          "voice_prompt": "Other alternatives are table, kitchen countertop, and other hard surfaces that are in the same height as your belly. Swipe if you found a hard surface.",
+          "animation_resource": "heimlich_yself_2.gif",
+          "duration_seconds": 15,
+          "critical_warning": "Surface must be solid and at navel height",
+          "next_step_id": "self_thrust"
+        },
+        {
+          "id": "self_thrust",
+          "step_number": 3,
+          "title": "Slam Your Belly",
+          "description": "Thrust your belly against the surface as hard as you can.\n\n5 TIMES\n\nSwipe after completing 5 thrusts.",
+          "voice_prompt": "Slam your belly as hard as you can 5 times. Swipe after you slam your belly for 5 times.",
+          "animation_resource": "heimlich_yself_3.gif",
+          "duration_seconds": 20,
+          "critical_warning": "⚠️ Use MAXIMUM force - your life depends on it",
+          "next_step_id": "self_try_cough"
+        },
+        {
+          "id": "self_try_cough",
+          "step_number": 4,
+          "title": "Try Coughing",
+          "description": "Try to cough forcefully now.\n\nSwipe to check if you're still choking.",
+          "voice_prompt": "Now try coughing.",
+          "animation_resource": "heimlich_yself_1.gif",
+          "duration_seconds": 10,
+          "next_step_id": "self_check_choking"
+        },
+        {
+          "id": "self_check_choking",
+          "step_number": 5,
+          "title": "Are You Still Choking?",
+          "description": "Can you breathe normally?\n\nIf YES: Good job, you're safe!\nIf NO: Swipe to repeat thrusts",
+          "voice_prompt": "If you are free from choking, good job! If you are still choking, swipe.",
+          "animation_resource": "heimlich_yself_1.gif",
+          "duration_seconds": 10,
+          "loop_back_to": "self_thrust",
+          "is_decision_point": true
+        }
+      ]
     },
-
-    "encourage_coughing": {
-      "step_type": "terminal",
-      "title": "Encourage Coughing",
-      "description": "Person can still cough.\n\nEncourage them to cough forcefully.\n\nStand by to help if needed.",
-      "voice_prompt": "Encourage them to cough. Monitor closely.",
-      "animation_resource": "heimlich_other_1.gif",
-      "outcome_type": "success"
-    },
-
-    "check_self_or_other": {
-      "step_type": "popup",
-      "title": "Self or Other Person?",
-      "description": "Are you choking or helping someone else?\n\nSELF = You are choking\nOTHER = Helping another person",
-      "voice_prompt": "Say SELF if you are choking. Say OTHER if helping someone else.",
-      "animation_resource": "heimlich_yself_1.gif",
-      "yes_next_step_id": "self_heimlich",
-      "no_next_step_id": "other_heimlich",
-      "yes_keywords": ["self", "me", "myself"],
-      "no_keywords": ["other", "them", "someone"]
-    },
-
-    "self_heimlich": {
-      "step_type": "instruction",
-      "title": "Self Heimlich",
-      "description": "Find a hard surface at belly height.\n\nLean forward and thrust belly against it.\n\nRepeat forcefully.",
-      "voice_prompt": "Find a table or counter. Lean on it and thrust your belly forcefully.",
-      "animation_resource": "heimlich_yself_3.gif",
-      "duration_seconds": 30,
-      "critical_warning": "⚠️ Use maximum force - your life depends on it",
-      "next_step_id": "self_heimlich_terminal"
-    },
-
-    "self_heimlich_terminal": {
-      "step_type": "terminal",
-      "title": "Continue Until Clear",
-      "description": "Keep thrusting until object is expelled.\n\nIf you become unconscious, someone should call 911 and perform CPR.",
-      "voice_prompt": "Continue until the object comes out.",
-      "animation_resource": "heimlich_yself_3.gif",
-      "outcome_type": "external_help"
-    },
-
-    "other_heimlich": {
-      "step_type": "instruction",
-      "title": "Heimlich for Others",
-      "description": "Stand behind person.\n\nMake fist below ribs.\n\nGrasp fist with other hand.\n\nThrust inward and upward forcefully.",
-      "voice_prompt": "Stand behind them. Make a fist below their ribs. Thrust inward and upward with force.",
-      "animation_resource": "heimlich_other_4.gif",
-      "duration_seconds": 20,
-      "critical_warning": "⚠️ If person becomes unconscious, start CPR immediately",
-      "next_step_id": "other_heimlich_terminal"
-    },
-
-    "other_heimlich_terminal": {
-      "step_type": "terminal",
-      "title": "Continue Until Clear",
-      "description": "Repeat thrusts until object is expelled.\n\nIf person becomes unconscious, lay them down and start CPR.",
-      "voice_prompt": "Continue thrusts until object comes out. If unconscious, start C P R.",
-      "animation_resource": "heimlich_other_4.gif",
-      "outcome_type": "success"
+    "helping": {
+      "name": "Someone is choking",
+      "description": "Performing Heimlich on another person",
+      "steps": [
+        {
+          "id": "help_call_911",
+          "step_number": 1,
+          "title": "Call Emergency",
+          "description": "Call 911 immediately or have someone else call.\n\nTap the phone icon or swipe to continue.",
+          "voice_prompt": "Call 911 immediately before starting Heimlich maneuver.",
+          "animation_resource": "call_emergency.gif",
+          "duration_seconds": 10,
+          "show_911_button": true,
+          "critical_warning": "⚠️ Call 911 first!",
+          "next_step_id": "help_ask_cough"
+        },
+        {
+          "id": "help_ask_cough",
+          "step_number": 2,
+          "title": "Ask Them to Cough",
+          "description": "Ask the person to cough if possible.\n\nDo NOT give them water - it can make things worse.\n\nSwipe when ready to proceed.",
+          "voice_prompt": "Ask them to cough if possible and do not give them water because it can make things worse.",
+          "animation_resource": "heimlich_other_1.gif",
+          "duration_seconds": 10,
+          "next_step_id": "help_position_behind"
+        },
+        {
+          "id": "help_position_behind",
+          "step_number": 3,
+          "title": "If the Patient Can't Cough",
+          "description": "Stand behind the person.\n\nSwipe when in position.",
+          "voice_prompt": "Stand behind the person.",
+          "animation_resource": "heimlich_other_2.gif",
+          "duration_seconds": 10,
+          "next_step_id": "help_lock_arms"
+        },
+        {
+          "id": "help_lock_arms",
+          "step_number": 4,
+          "title": "Lock Your Arms Around",
+          "description": "Wrap your arms around their waist.\n\nMake a fist just above the navel.\n\nSwipe when ready.",
+          "voice_prompt": "Quickly stand behind the person and follow the correct position.",
+          "animation_resource": "heimlich_other_3.gif",
+          "duration_seconds": 15,
+          "critical_warning": "Position fist above navel, below ribcage",
+          "next_step_id": "help_thrust"
+        },
+        {
+          "id": "help_thrust",
+          "step_number": 5,
+          "title": "Thrusting",
+          "description": "Thrust inward and upward forcefully.\n\n5 TIMES\n\nSwipe after 5 thrusts.",
+          "voice_prompt": "Thrust the belly of the person choking repeatedly for five times.",
+          "animation_resource": "heimlich_other_4.gif",
+          "duration_seconds": 20,
+          "critical_warning": "⚠️ Use firm, quick upward thrusts",
+          "next_step_id": "help_check_patient"
+        },
+        {
+          "id": "help_check_patient",
+          "step_number": 6,
+          "title": "Ask the Patient to Cough",
+          "description": "Check if the object was expelled.\n\nAsk them to try coughing.\n\nSwipe to check status.",
+          "voice_prompt": "Check the patient and ask them to cough.",
+          "animation_resource": "heimlich_other_1.gif",
+          "duration_seconds": 10,
+          "loop_back_to": "help_lock_arms",
+          "is_decision_point": true
+        }
+      ]
     }
+  },
+  "voice_keywords": {
+    "next": ["next", "continue", "swipe"],
+    "still_choking": ["yes", "still", "choking", "not clear"],
+    "clear": ["no", "clear", "free", "breathing", "safe"]
   }
 }

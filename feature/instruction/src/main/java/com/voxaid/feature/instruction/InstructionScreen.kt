@@ -7,6 +7,9 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.VolumeOff
+import androidx.compose.material.icons.filled.VolumeUp
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -22,11 +25,6 @@ import com.voxaid.core.design.theme.VoxAidTheme
 import com.voxaid.feature.instruction.components.*
 import timber.log.Timber
 
-/**
- * Instruction screen for displaying protocol steps.
- * Handles both instructional and emergency modes.
- * Tracks completion and unlocks emergency mode variants.
- */
 @Composable
 fun InstructionScreen(
     onBackClick: () -> Unit,
@@ -39,9 +37,11 @@ fun InstructionScreen(
     val show911Dialog by viewModel.show911Dialog.collectAsStateWithLifecycle()
     val isEmergencyMode = viewModel.isEmergencyMode
 
+    // 🔧 NEW: Track TTS enabled state
+    val ttsEnabled by viewModel.ttsEnabled.collectAsStateWithLifecycle()
+
     val context = LocalContext.current
 
-    // Start listening when screen appears
     LaunchedEffect(audioState.asrReady) {
         if (audioState.asrReady) {
             Timber.d("🎤 ASR ready, starting listening")
@@ -51,19 +51,16 @@ fun InstructionScreen(
         }
     }
 
-    // Stop listening when screen disappears
     DisposableEffect(Unit) {
         onDispose {
             viewModel.stopListening()
         }
     }
 
-    // Handle 911 dialog - can be triggered by voice command or button tap
     if (show911Dialog) {
         Call911Dialog(
             onConfirm = {
                 viewModel.dismiss911Dialog()
-                // Launch dialer with 911
                 val intent = Intent(Intent.ACTION_DIAL).apply {
                     data = Uri.parse("tel:911")
                     flags = Intent.FLAG_ACTIVITY_NEW_TASK
@@ -71,7 +68,6 @@ fun InstructionScreen(
                 try {
                     context.startActivity(intent)
                 } catch (e: Exception) {
-                    // Handle case where dialer is not available
                     Timber.e(e, "Failed to launch dialer")
                 }
             },
@@ -92,10 +88,13 @@ fun InstructionScreen(
                         showMicIndicator = true,
                         isMicActive = audioState.isListening && audioState.micPermissionGranted,
                         show911Button = true,
-                        on911Click = { viewModel.show911Dialog() }
+                        on911Click = { viewModel.show911Dialog() },
+                        // 🔧 NEW: TTS toggle
+                        showTtsToggle = true,
+                        ttsEnabled = ttsEnabled,
+                        onTtsToggle = { viewModel.toggleTts() }
                     )
                 }
-
                 else -> {
                     VoxAidTopBar(
                         title = "Loading...",
@@ -133,47 +132,36 @@ fun InstructionScreen(
                 is InstructionUiState.Success -> {
                     Column(modifier = Modifier.fillMaxSize()) {
 
-                        // Protocol-level warning banner
-//                        state.protocol.warning?.let { warning ->
-//                            BorderedInfoBanner(
-//                                text = warning,
-//                                type = if (isEmergencyMode) BannerType.Warning else BannerType.Info,
-//                                modifier = Modifier.padding(16.dp)
-//                            )
-//                        }
-//
-//// Step-specific emergency warning
-//                        if (isEmergencyMode && state.currentStep.criticalWarning != null) {
-//                            BorderedInfoBanner(
-//                                text = state.currentStep.criticalWarning!!,
-//                                type = BannerType.Critical,
-//                                modifier = Modifier.padding(horizontal = 16.dp)
-//                            )
-//                        }
-
-                        // Metronome for CPR (when applicable)
-//                        if (state.protocol.id == "cpr_learning" && state.protocol.metronomeBpm != null) {
-//                            Metronome(
-//                                bpm = state.protocol.metronomeBpm!!,
-//                                isPlaying = isMetronomeActive,
-//                                onBeat = {},
-//                                modifier = Modifier.padding(16.dp)
-//                            )
-//                        }
-
-                        // Auto-advance timer for emergency mode
-                        if (isEmergencyMode && state.currentStep.durationSeconds != null) {
-                            AutoAdvanceTimer(
-                                durationSeconds = state.currentStep.durationSeconds!!,
-                                onComplete = { viewModel.nextStep() },
-                                onCancel = {},
-                                modifier = Modifier.padding(horizontal = 16.dp)
-                            )
-
-                            Spacer(modifier = Modifier.height(8.dp))
+                        // 🔧 NEW: TTS Status Banner (only show if disabled)
+                        if (!ttsEnabled) {
+                            Card(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(16.dp),
+                                colors = CardDefaults.cardColors(
+                                    containerColor = MaterialTheme.colorScheme.secondaryContainer
+                                )
+                            ) {
+                                Row(
+                                    modifier = Modifier.padding(12.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.VolumeOff,
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.onSecondaryContainer,
+                                        modifier = Modifier.size(20.dp)
+                                    )
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Text(
+                                        text = "Voice guidance is off. Tap the speaker icon to enable.",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSecondaryContainer
+                                    )
+                                }
+                            }
                         }
 
-                        // Step content
                         InstructionStepPager(
                             protocol = state.protocol,
                             currentStepIndex = currentStepIndex,
@@ -184,7 +172,6 @@ fun InstructionScreen(
                             modifier = Modifier.weight(1f)
                         )
 
-                        // Step controls
                         StepControls(
                             currentStepIndex = currentStepIndex,
                             totalSteps = state.protocol.steps.size,
@@ -221,6 +208,8 @@ fun InstructionScreen(
         }
     }
 }
+
+// BorderedInfoBanner and other composables remain the same...
 
 @Composable
 fun BorderedInfoBanner(
@@ -266,6 +255,7 @@ fun BorderedInfoBanner(
 }
 
 enum class BannerType { Info, Warning, Critical }
+
 @Composable
 private fun WarningBanner(warning: String) {
     Card(

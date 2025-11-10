@@ -10,6 +10,7 @@ import androidx.navigation.navArgument
 import com.voxaid.feature.main.category.CategoryScreen
 import com.voxaid.feature.main.loading.LoadingScreen
 import com.voxaid.feature.main.menu.MainMenuScreen
+import timber.log.Timber
 
 /**
  * Navigation routes for VoxAid app.
@@ -95,6 +96,7 @@ fun VoxAidNavHost(
                     when {
                         // Emergency mode: Direct to emergency screen
                         mode == "emergency" -> {
+                            timber.log.Timber.d("emergency_$protocol")
                             navController.navigate(
                                 VoxAidRoute.Emergency.createRoute("emergency_$protocol")
                             )
@@ -193,7 +195,9 @@ fun VoxAidNavHost(
         ) { backStackEntry ->
             val protocol = backStackEntry.arguments?.getString(VoxAidRoute.Emergency.ARG_PROTOCOL)
                 ?: "emergency_cpr"
-
+            val actualProtocolReceived = backStackEntry.arguments?.getString(VoxAidRoute.Emergency.ARG_PROTOCOL)
+            Timber.d("📡 Emergency route argument received: $actualProtocolReceived")
+            Timber.d("✅ Final protocolId being passed to repository: $protocol")
             // Validate: Only CPR and Heimlich allowed
             if (!protocol.contains("cpr") && !protocol.contains("heimlich")) {
                 timber.log.Timber.e("Invalid emergency protocol: $protocol")

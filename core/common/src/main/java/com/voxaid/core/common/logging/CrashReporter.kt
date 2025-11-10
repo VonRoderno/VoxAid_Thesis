@@ -54,29 +54,35 @@ interface CrashReporter {
  *
  * 4. Update DI module to provide CrashlyticsReporter
  */
-class TimberCrashReporter @Inject constructor(): CrashReporter {
+class TimberCrashReporter @Inject constructor() : CrashReporter {
 
     override fun logException(throwable: Throwable, message: String?) {
-        message?.let { Timber.e(throwable, it) } ?: Timber.e(throwable)
+        // ✅ Use Log instead of Timber to avoid recursion
+        if (message != null) {
+            android.util.Log.e("CrashReporter", message, throwable)
+        } else {
+            android.util.Log.e("CrashReporter", throwable.message ?: "Unknown error", throwable)
+        }
     }
 
     override fun logMessage(message: String, priority: Int) {
+        // ✅ Directly call android.util.Log instead of Timber
         when (priority) {
-            android.util.Log.VERBOSE -> Timber.v(message)
-            android.util.Log.DEBUG -> Timber.d(message)
-            android.util.Log.INFO -> Timber.i(message)
-            android.util.Log.WARN -> Timber.w(message)
-            android.util.Log.ERROR -> Timber.e(message)
-            else -> Timber.d(message)
+            android.util.Log.VERBOSE -> android.util.Log.v("CrashReporter", message)
+            android.util.Log.DEBUG -> android.util.Log.d("CrashReporter", message)
+            android.util.Log.INFO -> android.util.Log.i("CrashReporter", message)
+            android.util.Log.WARN -> android.util.Log.w("CrashReporter", message)
+            android.util.Log.ERROR -> android.util.Log.e("CrashReporter", message)
+            else -> android.util.Log.d("CrashReporter", message)
         }
     }
 
     override fun setUserProperty(key: String, value: String) {
-        Timber.d("User property: $key = $value")
+        android.util.Log.d("CrashReporter", "User property: $key = $value")
     }
 
     override fun setUserId(userId: String) {
-        Timber.d("User ID: $userId")
+        android.util.Log.d("CrashReporter", "User ID: $userId")
     }
 }
 

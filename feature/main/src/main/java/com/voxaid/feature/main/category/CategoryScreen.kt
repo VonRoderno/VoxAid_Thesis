@@ -23,6 +23,7 @@ import com.voxaid.core.common.datastore.EmergencyLockState
 import com.voxaid.core.design.components.Call911Dialog
 import com.voxaid.core.design.components.VoxAidTopBar
 import com.voxaid.core.design.theme.VoxAidTheme
+import timber.log.Timber
 
 /**
  * Category selection screen with emergency lock badges.
@@ -134,6 +135,7 @@ fun CategoryScreen(
                                 onClick = {
                                     if (viewModel.canSelectProtocol(categoryState.protocol.id)) {
                                         onProtocolSelected(categoryState.protocol.id)
+                                        Timber.d("Category clicked -> name: ${categoryState.protocol.name}, , protocol: ${categoryState.protocol.id}")
                                     } else {
                                         showLockedDialog = categoryState
                                     }

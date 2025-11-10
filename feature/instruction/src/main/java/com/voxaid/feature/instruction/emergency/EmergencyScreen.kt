@@ -1,16 +1,11 @@
 package com.voxaid.feature.instruction.emergency
 
 import android.content.Intent
-import android.net.Uri
-import androidx.compose.animation.*
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.background
-import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -20,15 +15,9 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.semantics.LiveRegionMode
-import androidx.compose.ui.semantics.liveRegion
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -36,13 +25,11 @@ import com.voxaid.core.content.model.EmergencyStep
 import com.voxaid.core.design.components.Call911Dialog
 import com.voxaid.core.design.components.GifImage
 import com.voxaid.core.design.components.VoxAidTopBar
-import com.voxaid.core.design.theme.VoxAidTheme
 import com.voxaid.core.design.util.AnimationConfig
 import com.voxaid.feature.instruction.emergency.components.*
 import timber.log.Timber
 import androidx.core.net.toUri
 import com.voxaid.feature.instruction.components.MetronomeWithTone
-import kotlinx.coroutines.delay
 
 /**
  * Emergency Mode instruction screen with progress tracking and completion feedback.
@@ -68,6 +55,11 @@ fun EmergencyScreen(
     val show911Dialog by viewModel.show911Dialog.collectAsStateWithLifecycle()
     val audioState by viewModel.audioState.collectAsStateWithLifecycle()
     val voiceHint by viewModel.showVoiceHint.collectAsStateWithLifecycle()
+    val ttsEnabled by viewModel.ttsEnabled.collectAsStateWithLifecycle()
+    val showPathSelection by viewModel.showPathSelection.collectAsStateWithLifecycle()
+    val heimlichPath by viewModel.heimlichPath.collectAsStateWithLifecycle()
+    val showLoopDialog by viewModel.showLoopDialog.collectAsStateWithLifecycle()
+    val showSuccessDialog by viewModel.showSuccessDialog.collectAsStateWithLifecycle()
 
     // CPR Timer states
     val compressionCycleTime by viewModel.compressionCycleTime.collectAsStateWithLifecycle()
@@ -92,6 +84,31 @@ fun EmergencyScreen(
         }
     }
 
+    if (showPathSelection) {
+        HeimlichPathSelectionDialog(
+            onSelfSelected = { viewModel.selectHeimlichPath("self") },
+            onHelpingSelected = { viewModel.selectHeimlichPath("helping") }
+        )
+        return // Don't show other content until path selected
+    }
+
+    if (showLoopDialog) {
+        HeimlichStillChokingDialog(
+            isSelfPath = heimlichPath == "self",
+            onStillChoking = { viewModel.onStillChoking() },
+            onClear = { viewModel.onChokingCleared() }
+        )
+    }
+
+    if (showSuccessDialog) {
+        HeimlichSuccessDialog(
+            isSelfPath = heimlichPath == "self",
+            onComplete = {
+                viewModel.completeHeimlichSession()
+                onBackClick()
+            }
+        )
+    }
     // Handle 911 dialog
     if (show911Dialog) {
         Call911Dialog(
@@ -159,7 +176,11 @@ fun EmergencyScreen(
                         showMicIndicator = true,
                         isMicActive = audioState.isListening && audioState.micPermissionGranted,
                         show911Button = true,
-                        on911Click = { viewModel.show911Dialog() }
+                        on911Click = { viewModel.show911Dialog() },
+                        // 🔧 NEW: TTS toggle in emergency mode
+                        showTtsToggle = true,
+                        ttsEnabled = ttsEnabled,
+                        onTtsToggle = { viewModel.toggleTts() }
                     )
                 }
                 else -> {
@@ -294,75 +315,6 @@ fun EmergencyScreen(
 }
 
 
-// ProtocolHeaderCard and EmergencyStepContent remain the same as Phase 1
-// (Included in previous phase - no changes needed)
-
-@Composable
-private fun ProtocolHeaderCard(
-    protocolName: String,
-    warning: String?
-) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
-        ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.error.copy(alpha = 0.3f))
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp)
-        ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(
-                    imageVector = Icons.Default.LocalHospital,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.error,
-                    modifier = Modifier.size(28.dp)
-                )
-                Spacer(modifier = Modifier.width(12.dp))
-                Text(
-                    text = protocolName,
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-            }
-
-            warning?.let {
-                Spacer(modifier = Modifier.height(12.dp))
-                HorizontalDivider(
-                    Modifier,
-                    DividerDefaults.Thickness,
-                    color = MaterialTheme.colorScheme.error.copy(alpha = 0.2f)
-                )
-                Spacer(modifier = Modifier.height(12.dp))
-                Row(
-                    verticalAlignment = Alignment.Top
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Warning,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.error,
-                        modifier = Modifier.size(20.dp)
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = it,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                }
-            }
-        }
-    }
-}
 
 @Composable
 private fun EmergencyStepContent(
