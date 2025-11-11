@@ -26,8 +26,8 @@
     "self_intro": {
       "step_type": "instruction",
       "title": "If You Are Alone",
-      "description": "All functions are controllable by swipe. Do not give yourself water, it can make things worse.",
-      "voice_prompt": "All functions are controllable by swipe. Do not give yourself water, it can make things worse.",
+      "description": "Do not give yourself water, it can make things worse.",
+      "voice_prompt": "Do not give yourself water, it can make things worse.",
       "animation_resource": "heimlich_yself_1.gif",
       "duration_seconds": 10,
       "next_step_id": "self_find_surface"
@@ -89,7 +89,7 @@
     "help_call_911": {
       "step_type": "instruction",
       "title": "Call Emergency",
-      "description": "Call 911 immediately or have someone else call.\n\nTap the phone icon or swipe to continue.",
+      "description": "Call 911 immediately or have someone else call.\n\nTap the phone icon or go to next step.",
       "voice_prompt": "Call emergency services immediately.",
       "animation_resource": "call_emergency.gif",
       "duration_seconds": 10,

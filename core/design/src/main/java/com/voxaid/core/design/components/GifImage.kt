@@ -132,7 +132,7 @@ private fun GifPlaceholder(
                     text = if (isError) {
                         "Animation Error"
                     } else {
-                        "GIF Placeholder"
+                        "Loading..."
                     },
                     style = MaterialTheme.typography.titleMedium,
                     color = if (isError) {

@@ -39,13 +39,6 @@ class EmergencyViewModel @Inject constructor(
     private val _currentStep = MutableStateFlow<EmergencyStep?>(null)
     val currentStep: StateFlow<EmergencyStep?> = _currentStep.asStateFlow()
 
-    // NEW: Step sequence for pager
-    private val _stepSequence = MutableStateFlow<List<EmergencyStep>>(emptyList())
-    val stepSequence: StateFlow<List<EmergencyStep>> = _stepSequence.asStateFlow()
-
-    private val _currentStepIndex = MutableStateFlow(0)
-    val currentStepIndex: StateFlow<Int> = _currentStepIndex.asStateFlow()
-
     // CPR Timer State
     private val _compressionCycleTime = MutableStateFlow(0)
     val compressionCycleTime: StateFlow<Int> = _compressionCycleTime.asStateFlow()
@@ -64,6 +57,9 @@ class EmergencyViewModel @Inject constructor(
 
     private val _showExhaustionMessage = MutableStateFlow(false)
     val showExhaustionMessage: StateFlow<Boolean> = _showExhaustionMessage.asStateFlow()
+
+    private val _showTerminalMessage = MutableStateFlow(false)
+    val showTerminalMessage: StateFlow<Boolean> = _showTerminalMessage.asStateFlow()
 
     private val _heimlichPath = MutableStateFlow<String?>(null)
     val heimlichPath: StateFlow<String?> = _heimlichPath.asStateFlow()
@@ -186,6 +182,9 @@ class EmergencyViewModel @Inject constructor(
         ttsManager.stop()
     }
 
+    private fun showTerminalmessage() {
+        _showTerminalMessage.value = true
+    }
     private fun resumeCompressions() {
         _isMetronomeActive.value = true
         // 🔧 UPDATED: Only speak if TTS enabled
@@ -252,40 +251,6 @@ class EmergencyViewModel @Inject constructor(
     fun onEndSession() {
         _showExhaustionMessage.value = false
         stopListening()
-    }
-
-    /**
-     * NEW: Called when user swipes to a new page.
-     * Updates step engine to match pager position.
-     */
-    fun onPageSwiped(newIndex: Int) {
-        if (newIndex == currentStepIndex.value) return
-
-        val sequence = _stepSequence.value
-        if (newIndex !in sequence.indices) {
-            Timber.w("Invalid swipe index: $newIndex")
-            return
-        }
-
-        val targetStep = sequence[newIndex]
-
-        // Navigate step engine to the swiped step
-        stepEngine?.goToStepBySequenceIndex(newIndex)
-
-        Timber.d("User swiped to index $newIndex: ${targetStep.title}")
-    }
-
-    /**
-     * NEW: Determines if swipe should be disabled for current step.
-     * Disables swipe for steps requiring voice input.
-     */
-    fun shouldDisableSwipe(step: EmergencyStep): Boolean {
-        return when (step) {
-            is EmergencyStep.VoiceTrigger -> true  // Require voice input
-            is EmergencyStep.Popup -> true          // Require explicit choice
-            is EmergencyStep.Terminal -> true       // End of flow
-            else -> false                            // Allow swipe
-        }
     }
 
     private fun initializeAudio() {
@@ -408,7 +373,8 @@ class EmergencyViewModel @Inject constructor(
                 _showContinueDialog.value ||
                 _showExhaustionMessage.value ||
                 _showPopup.value != null ||
-                _show911Dialog.value
+                _show911Dialog.value ||
+                _showTerminalMessage.value
     }
 
     private fun handleDialogVoiceCommand(intent: VoiceIntent) {
@@ -514,13 +480,9 @@ class EmergencyViewModel @Inject constructor(
         protocol = emergencyProtocol
         stepEngine = EmergencyStepEngine(emergencyProtocol)
 
-        // Build step sequence for pager
-        updateStepSequence()
-
         viewModelScope.launch {
             stepEngine!!.currentStep.collect { step ->
                 _currentStep.value = step
-                updateCurrentStepIndex(step)
                 handleStepTransition(step)
             }
         }
@@ -539,31 +501,6 @@ class EmergencyViewModel @Inject constructor(
 
         _uiState.value = EmergencyUiState.Success(emergencyProtocol)
         Timber.i("Emergency step engine initialized")
-    }
-
-    /**
-     * NEW: Builds ordered sequence of steps for pager.
-     */
-    private fun updateStepSequence() {
-        val protocol = protocol ?: return
-        val sequence = stepEngine?.buildStepSequence() ?: emptyList()
-
-        _stepSequence.value = sequence
-        Timber.d("Built step sequence with ${sequence.size} steps")
-    }
-
-    /**
-     * NEW: Updates current index based on step ID.
-     */
-    private fun updateCurrentStepIndex(step: EmergencyStep?) {
-        if (step == null) return
-
-        val sequence = _stepSequence.value
-        val index = sequence.indexOfFirst { it.stepId == step.stepId }
-
-        if (index >= 0) {
-            _currentStepIndex.value = index
-        }
     }
 
     private fun handleStepTransition(step: EmergencyStep?) {

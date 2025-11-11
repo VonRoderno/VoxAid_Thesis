@@ -3,10 +3,7 @@ package com.voxaid.feature.instruction.emergency
 import android.content.Intent
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.pager.HorizontalPager
-import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
@@ -30,19 +27,24 @@ import com.voxaid.core.design.components.Call911Dialog
 import com.voxaid.core.design.components.GifImage
 import com.voxaid.core.design.components.VoxAidTopBar
 import com.voxaid.core.design.util.AnimationConfig
+import com.voxaid.feature.instruction.components.MetronomeWithTone
 import com.voxaid.feature.instruction.emergency.components.*
 import timber.log.Timber
 
 /**
- * Emergency Mode instruction screen with swipe navigation and progress tracking.
+ * Emergency Mode instruction screen with button/voice-only navigation.
  *
- * Phase: Swipe Navigation
- * - Added HorizontalPager for swipe-based step navigation
- * - Conditional swipe enable/disable based on step type
- * - Synchronized swipe with voice commands and button navigation
- * - Page indicators for visual feedback
+ * NO SWIPE NAVIGATION - Emergency protocols require:
+ * - Voice confirmation at decision points
+ * - Conditional branching based on patient status
+ * - Dialog-driven decisions affecting protocol flow
+ * - Coordinated TTS output for each step
+ *
+ * Navigation methods:
+ * - Voice commands (primary for hands-free operation)
+ * - Manual buttons (backup/accessibility)
+ * - Programmatic (timers, auto-advance)
  */
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun EmergencyScreen(
     onBackClick: () -> Unit,
@@ -50,8 +52,6 @@ fun EmergencyScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val currentStep by viewModel.currentStep.collectAsStateWithLifecycle()
-    val stepSequence by viewModel.stepSequence.collectAsStateWithLifecycle()
-    val currentStepIndex by viewModel.currentStepIndex.collectAsStateWithLifecycle()
     val elapsedTime by viewModel.elapsedTime.collectAsStateWithLifecycle()
     val beatCount by viewModel.beatCount.collectAsStateWithLifecycle()
     val showPopup by viewModel.showPopup.collectAsStateWithLifecycle()
@@ -75,26 +75,6 @@ fun EmergencyScreen(
 
     val context = LocalContext.current
 
-    // Pager state - controlled by step sequence
-    val pagerState = rememberPagerState(
-        initialPage = currentStepIndex,
-        pageCount = { stepSequence.size }
-    )
-
-    // Sync pager with step index changes from voice/buttons
-    LaunchedEffect(currentStepIndex) {
-        if (pagerState.currentPage != currentStepIndex && currentStepIndex < stepSequence.size) {
-            pagerState.animateScrollToPage(currentStepIndex)
-        }
-    }
-
-    // Notify ViewModel when user swipes to new page
-    LaunchedEffect(pagerState.currentPage) {
-        if (pagerState.currentPage != currentStepIndex && !pagerState.isScrollInProgress) {
-            viewModel.onPageSwiped(pagerState.currentPage)
-        }
-    }
-
     LaunchedEffect(audioState.asrReady) {
         if (audioState.asrReady) {
             Timber.d("🎤 ASR ready, starting listening")
@@ -108,7 +88,7 @@ fun EmergencyScreen(
         }
     }
 
-    // ... [All dialog handlers remain the same] ...
+    // Dialog handlers
     if (showPathSelection) {
         HeimlichPathSelectionDialog(
             onSelfSelected = { viewModel.selectHeimlichPath("self") },
@@ -233,44 +213,21 @@ fun EmergencyScreen(
                 is EmergencyUiState.Success -> {
                     Box(modifier = Modifier.fillMaxSize()) {
                         Column(modifier = Modifier.fillMaxSize()) {
-                            // Main content with swipe navigation
+                            // Main content - single step display
                             Box(
                                 modifier = Modifier
                                     .weight(1f)
                                     .fillMaxWidth()
                             ) {
-                                if (stepSequence.isNotEmpty()) {
-                                    HorizontalPager(
-                                        state = pagerState,
-                                        modifier = Modifier.fillMaxSize(),
-                                        // Disable swipe for voice-triggered steps
-                                        userScrollEnabled = currentStep?.let {
-                                            !viewModel.shouldDisableSwipe(it)
-                                        } ?: false
-                                    ) { page ->
-                                        val step = stepSequence.getOrNull(page)
-                                        step?.let {
-                                            EmergencyStepContent(
-                                                step = it,
-                                                elapsedTime = elapsedTime,
-                                                beatCount = beatCount,
-                                                voiceHint = voiceHint,
-                                                modifier = Modifier.fillMaxSize()
-                                            )
-                                        }
-                                    }
+                                currentStep?.let { step ->
+                                    EmergencyStepContent(
+                                        step = step,
+                                        elapsedTime = elapsedTime,
+                                        beatCount = beatCount,
+                                        voiceHint = voiceHint,
+                                        modifier = Modifier.fillMaxSize()
+                                    )
                                 }
-                            }
-
-                            // Page indicators
-                            if (stepSequence.size > 1 && currentStep !is EmergencyStep.Terminal) {
-                                PageIndicators(
-                                    currentPage = currentStepIndex,
-                                    totalPages = stepSequence.size,
-                                    modifier = Modifier
-                                        .align(Alignment.CenterHorizontally)
-                                        .padding(vertical = 8.dp)
-                                )
                             }
 
                             // Metronome
@@ -351,47 +308,6 @@ fun EmergencyScreen(
     }
 }
 
-/**
- * Page indicators showing current position in step sequence.
- */
-@Composable
-private fun PageIndicators(
-    currentPage: Int,
-    totalPages: Int,
-    modifier: Modifier = Modifier
-) {
-    Row(
-        modifier = modifier,
-        horizontalArrangement = Arrangement.spacedBy(6.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        repeat(totalPages.coerceAtMost(10)) { index ->
-            val isActive = index == currentPage
-
-            Box(
-                modifier = Modifier
-                    .size(if (isActive) 10.dp else 6.dp)
-                    .clip(CircleShape)
-                    .background(
-                        if (isActive) {
-                            MaterialTheme.colorScheme.error
-                        } else {
-                            MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
-                        }
-                    )
-            )
-        }
-
-        if (totalPages > 10) {
-            Text(
-                text = "${currentPage + 1}/$totalPages",
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        }
-    }
-}
-
 @Composable
 private fun EmergencyStepContent(
     step: EmergencyStep,
@@ -446,7 +362,7 @@ private fun EmergencyStepContent(
                             )
                             Spacer(modifier = Modifier.height(16.dp))
                             Text(
-                                text = "GIF Placeholder",
+                                text = "Loading...",
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.primary
@@ -464,16 +380,6 @@ private fun EmergencyStepContent(
             }
 
             Spacer(modifier = Modifier.height(24.dp))
-        }
-
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surface
-            ),
-            elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
-        ) {
-            // Content removed to save space - uses same pattern as original
         }
 
         when (step) {
@@ -586,8 +492,7 @@ private fun VoicePromptCard(
                                     text = keyword.uppercase(),
                                     style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold),
                                     color = MaterialTheme.colorScheme.primary,
-                                    modifier = Modifier
-                                        .padding(horizontal = 12.dp, vertical = 6.dp)
+                                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
                                 )
                             }
                         }
@@ -655,7 +560,7 @@ private fun VoicePromptCard(
 
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = "👆 Tap • 👈👉 Swipe • 🎤 Speak",
+                text = "👆 Tap buttons • 🎤 Use voice",
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
                 textAlign = TextAlign.Center

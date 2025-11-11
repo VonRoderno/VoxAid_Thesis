@@ -11,15 +11,22 @@ import kotlinx.coroutines.flow.asStateFlow
 import timber.log.Timber
 
 /**
- * State machine engine for emergency protocol execution.
- * Handles step navigation, branching, timing, and voice triggers.
+ * State machine engine for emergency protocol execution with swipe navigation support.
  *
  * Features:
  * - Step-by-step navigation with branching logic
+ * - Swipeable step sequence for HorizontalPager
  * - Timer-based events and auto-transitions
  * - Voice keyword detection
  * - Loop tracking with iteration limits
  * - Terminal state detection
+ * - Index-based navigation for UI sync
+ *
+ * Swipe Navigation:
+ * - Builds linear step sequence for pager
+ * - Disables swipe for voice-triggered steps
+ * - Maintains index synchronization
+ * - Supports both swipe and programmatic navigation
  */
 class EmergencyStepEngine(
     private val protocol: EmergencyProtocol
@@ -53,16 +60,16 @@ class EmergencyStepEngine(
     private val stepHistory = mutableListOf<String>()
 
     init {
-        Timber.Forest.d("EmergencyStepEngine initialized with protocol: ${protocol.name}")
+        Timber.d("EmergencyStepEngine initialized with protocol: ${protocol.name}")
         updateCurrentStep(protocol.initialStepId)
     }
 
     /**
-     * Navigates to a specific step by ID.
+     * Navigates to a specific step by ID (programmatic navigation).
      */
     fun goToStep(stepId: String) {
         if (stepId !in steps) {
-            Timber.Forest.e("Step not found: $stepId")
+            Timber.e("Step not found: $stepId")
             return
         }
 
@@ -76,23 +83,25 @@ class EmergencyStepEngine(
         updateCurrentStep(stepId)
     }
 
+    /**
+     * Navigate to previous step in history.
+     */
     fun previousStep(): Boolean {
         if (stepHistory.isEmpty()) {
-            Timber.Forest.w("No previous step available")
+            Timber.w("No previous step available")
             return false
         }
 
-        val previousId = stepHistory.removeAt(stepHistory.lastIndex) // pop last visited
+        val previousId = stepHistory.removeAt(stepHistory.lastIndex)
         if (previousId in steps) {
-            Timber.Forest.d("Navigating back to: $previousId")
+            Timber.d("Navigating back to: $previousId")
             updateCurrentStep(previousId)
             return true
         }
 
-        Timber.Forest.e("Previous step not found: $previousId")
+        Timber.e("Previous step not found: $previousId")
         return false
     }
-
 
     /**
      * Advances to the next step based on current step type.
@@ -101,56 +110,15 @@ class EmergencyStepEngine(
     fun nextStep(): Boolean {
         val current = _currentStep.value ?: return false
         val nextId = getNextStepId(current.stepId)
-                if (nextId != null) {
-                    goToStep(nextId)
-                    return true
-                } else {
-                    return false
-                }
-//        return when (current) {
-//            is EmergencyStep.Instruction -> {
-//                val nextId = getNextStepId(current.stepId)
-//                if (nextId != null) {
-//                    goToStep(nextId)
-//                    true
-//                } else {
-//                    false
-//                }
-//            }
-//
-//            is EmergencyStep.VoiceTrigger -> {
-//                // Wait for voice input - don't auto-advance
-//                false
-//            }
-//
-//            is EmergencyStep.Popup -> {
-//                // Wait for user choice - don't auto-advance
-//                false
-//            }
-//
-//            is EmergencyStep.Timed -> {
-//                val nextId = getNextStepId(current.stepId)
-//                if (nextId != null) {
-//                    goToStep(nextId)
-//                    true
-//                } else {
-//                    false
-//                }
-//            }
-//
-//            is EmergencyStep.Loop -> {
-//                handleLoop(current)
-//            }
-//
-//            is EmergencyStep.Terminal -> {
-//                false
-//            }
+
+        if (nextId != null) {
+            goToStep(nextId)
+            return true
         }
 
-    /**
-     * Handles voice keyword detection.
-     * Returns true if keyword matched and navigation occurred.
-     */
+        return false
+    }
+
     /**
      * Handles voice keyword detection with special routing for tap_shout step.
      * Returns true if keyword matched and navigation occurred.
@@ -164,13 +132,11 @@ class EmergencyStepEngine(
         // Special handling for tap_shout step
         if (current.stepId == "tap_shout") {
             return when {
-                // "Responsive" → patient recovered (success)
                 normalizedKeyword in listOf("yes", "responsive", "conscious", "awake", "responding") -> {
                     Timber.i("✓ Patient RESPONSIVE - navigating to patient_recovered")
                     goToStep("patient_recovered")
                     true
                 }
-                // "Unresponsive" → continue CPR cycle
                 normalizedKeyword in listOf("no", "whoa", "unresponsive", "unconscious", "not responding", "no response") -> {
                     Timber.i("✓ Patient UNRESPONSIVE - returning to chest_compressions")
                     goToStep("chest_compressions")
@@ -183,33 +149,16 @@ class EmergencyStepEngine(
             }
         }
 
-        // Standard voice trigger handling for other steps
+        // Standard voice trigger handling
         return when (current) {
             is EmergencyStep.VoiceTrigger -> {
-                // Check if keyword matches any expected keyword
                 val matched = current.expectedKeywords.any { expected ->
-                    val normalizedExpected = expected.lowercase().trim()
-                    val isMatch = normalizedExpected == normalizedKeyword
-
-                    if (isMatch) {
-                        Timber.i("✓ Keyword match: '$normalizedKeyword' == '$normalizedExpected'")
-                    } else {
-                        Timber.v("✗ No match: '$normalizedKeyword' != '$normalizedExpected'")
-                    }
-
-                    isMatch
+                    expected.lowercase().trim() == normalizedKeyword
                 }
 
                 if (matched) {
                     Timber.i("Voice trigger matched: $normalizedKeyword → advancing to next step")
-                    val nextId = getNextStepId(current.stepId)
-                    if (nextId != null) {
-                        goToStep(nextId)
-                        true
-                    } else {
-                        Timber.w("Voice trigger matched but no next step defined")
-                        false
-                    }
+                    nextStep()
                 } else {
                     Timber.w("Keyword '$normalizedKeyword' not in expected list: ${current.expectedKeywords}")
                     false
@@ -217,15 +166,8 @@ class EmergencyStepEngine(
             }
 
             is EmergencyStep.Popup -> {
-                // Check YES keywords
-                val isYes = current.yesKeywords.any {
-                    it.lowercase().trim() == normalizedKeyword
-                }
-
-                // Check NO keywords
-                val isNo = current.noKeywords.any {
-                    it.lowercase().trim() == normalizedKeyword
-                }
+                val isYes = current.yesKeywords.any { it.lowercase().trim() == normalizedKeyword }
+                val isNo = current.noKeywords.any { it.lowercase().trim() == normalizedKeyword }
 
                 when {
                     isYes -> {
@@ -239,14 +181,14 @@ class EmergencyStepEngine(
                         true
                     }
                     else -> {
-                        Timber.w("Keyword '$normalizedKeyword' not in YES${current.yesKeywords} or NO${current.noKeywords}")
+                        Timber.w("Keyword '$normalizedKeyword' not in YES or NO keywords")
                         false
                     }
                 }
             }
 
             else -> {
-                Timber.d("Current step (${current.javaClass.simpleName}) doesn't handle voice keywords")
+                Timber.d("Current step doesn't handle voice keywords")
                 false
             }
         }
@@ -254,7 +196,6 @@ class EmergencyStepEngine(
 
     /**
      * Gets the next step ID from protocol data.
-     * Made public so ViewModel can use it.
      */
     fun getNextStepId(currentStepId: String): String? {
         val rawData = protocol.steps[currentStepId]
@@ -300,23 +241,20 @@ class EmergencyStepEngine(
 
     /**
      * Updates beat count for compression tracking.
-     * Beat count now continues indefinitely without auto-advancing.
      */
     fun updateBeatCount(count: Int) {
         _beatCount.value = count
 
         val current = _currentStep.value
         if (current is EmergencyStep.Timed && current.countBeats) {
-            // Log milestone but don't auto-advance
             if (current.targetBeats != null && count >= current.targetBeats!!) {
                 Timber.d("Target beats reached: $count/${current.targetBeats}")
-                // User must manually advance with voice or button
             }
         }
     }
 
     /**
-     * Resets timer and beat count (for loops).
+     * Resets timer and beat count.
      */
     fun resetTimers() {
         _elapsedTime.value = 0
@@ -325,7 +263,7 @@ class EmergencyStepEngine(
     }
 
     /**
-     * Gets the current step as a specific type (for type-safe access).
+     * Gets the current step as a specific type.
      */
     inline fun <reified T : EmergencyStep> getCurrentStepAs(): T? {
         return _currentStep.value as? T
@@ -347,7 +285,7 @@ class EmergencyStepEngine(
     }
 
     /**
-     * Private helper to update current step.
+     * Updates current step state.
      */
     private fun updateCurrentStep(stepId: String) {
         _currentStepId.value = stepId
@@ -361,46 +299,23 @@ class EmergencyStepEngine(
             resetTimers()
         }
 
-        Timber.Forest.d("Navigated to step: $stepId (${steps[stepId]?.title})")
+        Timber.d("Navigated to step: $stepId (${steps[stepId]?.title})")
     }
 
     /**
-     * Handles loop logic with iteration tracking.
-     */
-    private fun handleLoop(loop: EmergencyStep.Loop): Boolean {
-        val iterations = loopIterations.getOrPut(loop.stepId) { 0 }
-
-        if (loop.maxIterations != null && iterations >= loop.maxIterations!!) {
-            Timber.Forest.d("Loop max iterations reached for ${loop.stepId}")
-            return nextStep() // Exit loop
-        }
-
-        loopIterations[loop.stepId] = iterations + 1
-        Timber.Forest.d("Loop iteration ${iterations + 1} for ${loop.stepId}")
-
-        goToStep(loop.loopToStepId)
-        return true
-    }
-
-    /**
-     * Handles timer events (popups, notifications, transitions).
+     * Handles timer events.
      */
     private fun handleTimerEvent(event: TimerEvent) {
-        Timber.Forest.d("Timer event triggered at ${event.triggerAtSeconds}s: ${event.eventType}")
+        Timber.d("Timer event triggered at ${event.triggerAtSeconds}s: ${event.eventType}")
 
         when (event.eventType) {
             TimerEventType.POPUP -> {
-                // UI will handle showing popup - just log for now
-                Timber.Forest.i("Show popup: ${event.popupMessage}")
+                Timber.i("Show popup: ${event.popupMessage}")
             }
-
             TimerEventType.NOTIFICATION -> {
-                // Show snackbar/toast
-                Timber.Forest.i("Show notification: ${event.popupMessage}")
+                Timber.i("Show notification: ${event.popupMessage}")
             }
-
             TimerEventType.STEP_TRANSITION -> {
-                // Auto-advance
                 nextStep()
             }
         }

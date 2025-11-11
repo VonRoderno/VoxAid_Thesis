@@ -18,12 +18,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.voxaid.core.design.theme.VoxAidTheme
 
-/**
- * Emergency popup dialog for yes/no branching decisions.
- * Large text, high contrast, voice-command friendly.
- *
- * Updated: Enhanced manual button visibility and touch targets
- */
 @Composable
 fun EmergencyPopupDialog(
     title: String,
@@ -62,7 +56,10 @@ fun EmergencyPopupDialog(
             }
         },
         text = {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier.fillMaxWidth()
+            ) {
 
                 Text(
                     text = message,
@@ -75,60 +72,64 @@ fun EmergencyPopupDialog(
                 Spacer(Modifier.height(20.dp))
 
                 // Voice Command Area
-                Box(
+                Card(
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.primaryContainer
+                    ),
+                    border = BorderStroke(2.dp, MaterialTheme.colorScheme.primary),
+                    shape = RoundedCornerShape(16.dp),
                     modifier = Modifier
-                        .fillMaxWidth(),
-                    contentAlignment = Alignment.Center
+                        .fillMaxWidth()
+                        .padding(horizontal = 12.dp)
                 ) {
-                    Card(
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.primaryContainer
-                        ),
-                        border = BorderStroke(2.dp, MaterialTheme.colorScheme.primary),
+                    Column(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 4.dp) // small padding prevents edge clipping
+                            .padding(vertical = 18.dp, horizontal = 12.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
                     ) {
-                        Column(
-                            modifier = Modifier.fillMaxWidth().padding(18.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally
+                        Icon(
+                            imageVector = Icons.Default.Mic,
+                            contentDescription = "Mic",
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(40.dp)
+                        )
+
+                        Spacer(Modifier.height(6.dp))
+
+                        Text(
+                            "Say your answer clearly",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            textAlign = TextAlign.Center,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer
+                        )
+
+                        Spacer(Modifier.height(10.dp))
+
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(16.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.align(Alignment.CenterHorizontally)
                         ) {
-                            Icon(
-                                imageVector = Icons.Default.Mic,
-                                contentDescription = "Mic",
-                                tint = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.size(36.dp)
-                            )
-
-                            Spacer(Modifier.height(6.dp))
-
                             Text(
-                                "Say your answer clearly",
-                                style = MaterialTheme.typography.titleMedium,
+                                yesLabel.uppercase(),
+                                style = MaterialTheme.typography.headlineSmall,
                                 fontWeight = FontWeight.Bold,
-                                textAlign = TextAlign.Center
+                                color = MaterialTheme.colorScheme.primary
                             )
-
-                            Spacer(Modifier.height(10.dp))
-
-                            Row(
-                                horizontalArrangement = Arrangement.spacedBy(16.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Text(
-                                    yesLabel.uppercase(),
-                                    style = MaterialTheme.typography.headlineSmall,
-                                    fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.primary
-                                )
-                                Text("•")
-                                Text(
-                                    noLabel.uppercase(),
-                                    style = MaterialTheme.typography.headlineSmall,
-                                    fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.error
-                                )
-                            }
+                            Text(
+                                "•",
+                                style = MaterialTheme.typography.headlineSmall,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer
+                            )
+                            Text(
+                                noLabel.uppercase(),
+                                style = MaterialTheme.typography.headlineSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.error
+                            )
                         }
                     }
                 }

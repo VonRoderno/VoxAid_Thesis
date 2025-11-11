@@ -1,10 +1,12 @@
 package com.voxaid.feature.main.menu
 
-import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.LocalHospital
 import androidx.compose.material.icons.filled.School
@@ -19,78 +21,91 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.voxaid.core.design.components.EmergencyButton
-import com.voxaid.core.design.components.PrimaryButton
 import com.voxaid.core.design.theme.VoxAidTheme
 
-/**
- * Main menu screen.
- * User selects between Instructional or Emergency mode.
- */
 @Composable
 fun MainMenuScreen(
     onModeSelected: (String) -> Unit
 ) {
-    Scaffold(
-        topBar = {
-            // Empty top bar for main menu
-        }
-    ) { paddingValues ->
-        Column(
+    Scaffold { paddingValues ->
+        Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .padding(24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+                .background(MaterialTheme.colorScheme.background)
         ) {
-            // Header
-            Text(
-                text = "VoxAid",
-                style = MaterialTheme.typography.displayMedium,
-                color = MaterialTheme.colorScheme.primary,
-                textAlign = TextAlign.Center
-            )
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 24.dp, vertical = 16.dp)
+                    .imePadding(), // handle keyboard overlap safely
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.SpaceBetween
+            ) {
+                // Header Section
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .wrapContentHeight(),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        text = "VoxAid",
+                        style = MaterialTheme.typography.displayMedium,
+                        color = MaterialTheme.colorScheme.primary,
+                        textAlign = TextAlign.Center
+                    )
 
-            Spacer(modifier = Modifier.height(8.dp))
+                    Spacer(modifier = Modifier.height(8.dp))
 
-            Text(
-                text = "Choose Your Mode",
-                style = MaterialTheme.typography.titleLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                textAlign = TextAlign.Center
-            )
+                    Text(
+                        text = "Choose Your Mode",
+                        style = MaterialTheme.typography.titleLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.Center
+                    )
+                }
 
-            Spacer(modifier = Modifier.height(48.dp))
+                Spacer(modifier = Modifier.height(24.dp))
 
-            // Mode Selection Cards
-            ModeSelectionCard(
-                title = "Instructional Mode",
-                description = "Learn first aid procedures at your own pace with voice guidance and step-by-step instructions.",
-                icon = Icons.Default.School,
-                onClick = { onModeSelected("instructional") }
-            )
+                // Scrollable content area for smaller screens
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f, fill = false)
+                        .padding(vertical = 16.dp)
+                        .verticalScroll(rememberScrollState()),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    ModeSelectionCard(
+                        title = "Instructional Mode",
+                        description = "Learn first aid procedures at your own pace with voice guidance and step-by-step instructions.",
+                        icon = Icons.Default.School,
+                        onClick = { onModeSelected("instructional") }
+                    )
 
-            Spacer(modifier = Modifier.height(24.dp))
+                    Spacer(modifier = Modifier.height(24.dp))
 
-            ModeSelectionCard(
-                title = "Emergency Mode",
-                description = "Real-time voice-guided emergency assistance with large text and auto-advancing steps.",
-                icon = Icons.Default.LocalHospital,
-                isEmergency = true,
-                onClick = { onModeSelected("emergency") }
-            )
+                    ModeSelectionCard(
+                        title = "Emergency Mode",
+                        description = "Real-time voice-guided emergency assistance with large text and auto-advancing steps.",
+                        icon = Icons.Default.LocalHospital,
+                        isEmergency = true,
+                        onClick = { onModeSelected("emergency") }
+                    )
+                }
 
-            Spacer(modifier = Modifier.height(32.dp))
+                Spacer(modifier = Modifier.height(16.dp))
 
-            // Info text
-            Text(
-                text = "Remember: Always call emergency services first!",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.error,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.padding(horizontal = 16.dp)
-            )
+                // Info Text
+                Text(
+                    text = "⚠️ Remember: Always call emergency services first!",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.error,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.padding(horizontal = 16.dp)
+                )
+            }
         }
     }
 }
@@ -103,7 +118,6 @@ private fun ModeSelectionCard(
     onClick: () -> Unit,
     isEmergency: Boolean = false
 ) {
-    // Choose gradient depending on mode
     val gradient = if (isEmergency) {
         listOf(
             MaterialTheme.colorScheme.error,
@@ -116,28 +130,22 @@ private fun ModeSelectionCard(
         )
     }
 
-    // Container background stays surface for readability
     val bgColor = MaterialTheme.colorScheme.surface
-
-    val borderColor = if (isEmergency) {
-        MaterialTheme.colorScheme.error
-    } else {
-        MaterialTheme.colorScheme.primary
-    }
+    val borderColor = if (isEmergency) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
 
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .height(180.dp)
+            .heightIn(min = 180.dp)
             .clip(RoundedCornerShape(20.dp))
-            .clickable { onClick() }
             .background(bgColor)
             .border(
                 width = 2.dp,
                 brush = Brush.linearGradient(gradient),
                 shape = RoundedCornerShape(20.dp)
             )
-            .shadow(6.dp, RoundedCornerShape(20.dp))
+            .shadow(4.dp, RoundedCornerShape(20.dp))
+            .clickable { onClick() }
             .padding(20.dp)
     ) {
         Column(
@@ -152,9 +160,7 @@ private fun ModeSelectionCard(
                         modifier = Modifier.size(32.dp),
                         tint = borderColor
                     )
-
                     Spacer(modifier = Modifier.width(12.dp))
-
                     Text(
                         text = title,
                         style = MaterialTheme.typography.titleLarge,
@@ -177,7 +183,9 @@ private fun ModeSelectionCard(
                     containerColor = borderColor,
                     contentColor = MaterialTheme.colorScheme.onPrimary
                 ),
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(46.dp),
                 shape = RoundedCornerShape(12.dp)
             ) {
                 Text("Start")
@@ -186,13 +194,10 @@ private fun ModeSelectionCard(
     }
 }
 
-
-@Preview(showBackground = true)
+@Preview(showBackground = true, showSystemUi = true)
 @Composable
 private fun MainMenuScreenPreview() {
     VoxAidTheme {
-        MainMenuScreen(
-            onModeSelected = {}
-        )
+        MainMenuScreen(onModeSelected = {})
     }
 }

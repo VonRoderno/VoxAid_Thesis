@@ -19,6 +19,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -44,273 +46,203 @@ fun EmergencyControls(
     isListening: Boolean = true,
     modifier: Modifier = Modifier
 ) {
-    // Pulsing animation for voice indicator
-    val infiniteTransition = rememberInfiniteTransition(label = "voice_pulse")
+    val infiniteTransition = rememberInfiniteTransition(label = "voice_anim")
+
+    // Pulse for mic and voice ring
     val voicePulse by infiniteTransition.animateFloat(
         initialValue = 1f,
-        targetValue = 1.2f,
+        targetValue = 1.3f,
         animationSpec = infiniteRepeatable(
             animation = tween(1000, easing = FastOutSlowInEasing),
             repeatMode = RepeatMode.Reverse
-        ),
-        label = "pulse"
+        ), label = "voice_pulse"
     )
 
-    // Color animation for voice indicator
-    val voiceAlpha by infiniteTransition.animateFloat(
-        initialValue = 0.6f,
-        targetValue = 1f,
+    // Glow opacity
+    val glowAlpha by infiniteTransition.animateFloat(
+        initialValue = 0.3f,
+        targetValue = 0.8f,
         animationSpec = infiniteRepeatable(
-            animation = tween(1000, easing = FastOutSlowInEasing),
+            animation = tween(1000, easing = LinearEasing),
             repeatMode = RepeatMode.Reverse
-        ),
-        label = "alpha"
+        ), label = "voice_glow"
     )
 
     Surface(
-        modifier = modifier,
-        color = MaterialTheme.colorScheme.surface,
-        shadowElevation = 12.dp,
-        tonalElevation = 2.dp
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = 12.dp, vertical = 8.dp)
+            .clip(RoundedCornerShape(20.dp)),
+        tonalElevation = 3.dp,
+        color = MaterialTheme.colorScheme.surface.copy(alpha = 0.95f),
+        shadowElevation = 10.dp
     ) {
         Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 12.dp)
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            // Voice hint bubble (animated entry/exit)
+
+            // 🔹 Voice hint bubble with subtle glow
             AnimatedVisibility(
                 visible = voiceHint != null,
-                enter = slideInVertically { -it } + expandVertically() + fadeIn(),
-                exit = slideOutVertically { -it } + shrinkVertically() + fadeOut()
+                enter = fadeIn(tween(300)) + expandVertically(),
+                exit = fadeOut(tween(300)) + shrinkVertically()
             ) {
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(bottom = 12.dp),
+                        .background(MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.15f)),
                     colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.5f)
+                        containerColor = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.3f)
                     ),
-                    shape = RoundedCornerShape(12.dp)
+                    shape = RoundedCornerShape(16.dp),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
                 ) {
                     Row(
-                        modifier = Modifier.padding(12.dp),
+                        modifier = Modifier.padding(14.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Icon(
-                            imageVector = Icons.Default.Mic,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.error,
+                        Box(
                             modifier = Modifier
-                                .size(20.dp)
-                                .scale(voicePulse)
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
+                                .size(26.dp)
+                                .scale(if (isListening) voicePulse else 1f)
+                                .clip(CircleShape)
+                                .background(MaterialTheme.colorScheme.error.copy(alpha = glowAlpha)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Mic,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onError,
+                                modifier = Modifier.size(14.dp)
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.width(10.dp))
                         Text(
-                            text = voiceHint ?: "",
-                            style = MaterialTheme.typography.bodyMedium,
-                            fontWeight = FontWeight.SemiBold,
+                            text = voiceHint.orEmpty(),
+                            style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
                             color = MaterialTheme.colorScheme.onErrorContainer
                         )
                     }
                 }
             }
 
+            // 🔸 Control Buttons Row
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Back button with scale animation
-                var isBackPressed by remember { mutableStateOf(false) }
-                val backScale by animateFloatAsState(
-                    targetValue = if (isBackPressed) 0.9f else 1f,
-                    animationSpec = spring(
-                        dampingRatio = Spring.DampingRatioMediumBouncy,
-                        stiffness = Spring.StiffnessHigh
-                    ),
-                    label = "back_scale"
+                // ⬅️ Back
+                AnimatedButton(
+                    icon = Icons.AutoMirrored.Filled.ArrowBack,
+                    tint = MaterialTheme.colorScheme.onSurface,
+                    borderColor = MaterialTheme.colorScheme.outline,
+                    backgroundColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
+                    onClick = onBack
                 )
 
-                OutlinedIconButton(
-                    onClick = {
-                        isBackPressed = true
-                        Timber.d("Back button clicked")
-                        onBack()
-                    },
-                    modifier = Modifier
-                        .size(56.dp)
-                        .scale(backScale),
-                    colors = IconButtonDefaults.outlinedIconButtonColors(
-                        contentColor = MaterialTheme.colorScheme.onSurface
-                    ),
-                    border = BorderStroke(
-                        1.dp,
-                        MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
-                    )
-                ) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "Go back",
-                        modifier = Modifier.size(28.dp)
-                    )
-                }
-
-                LaunchedEffect(isBackPressed) {
-                    if (isBackPressed) {
-                        kotlinx.coroutines.delay(100)
-                        isBackPressed = false
-                    }
-                }
-
-                // Repeat button (primary action)
-                var isRepeatPressed by remember { mutableStateOf(false) }
-                val repeatScale by animateFloatAsState(
-                    targetValue = if (isRepeatPressed) 0.95f else 1f,
-                    animationSpec = spring(
-                        dampingRatio = Spring.DampingRatioMediumBouncy,
-                        stiffness = Spring.StiffnessHigh
-                    ),
-                    label = "repeat_scale"
-                )
-
-                FilledTonalButton(
-                    onClick = {
-                        isRepeatPressed = true
-                        Timber.d("Repeat button clicked")
-                        onRepeat()
-                    },
+                // 🔁 Repeat (primary action)
+                Button(
+                    onClick = onRepeat,
                     modifier = Modifier
                         .weight(1f)
-                        .height(56.dp)
-                        .scale(repeatScale),
-                    colors = ButtonDefaults.filledTonalButtonColors(
+                        .height(56.dp),
+                    colors = ButtonDefaults.buttonColors(
                         containerColor = MaterialTheme.colorScheme.secondaryContainer,
                         contentColor = MaterialTheme.colorScheme.onSecondaryContainer
                     ),
-                    shape = RoundedCornerShape(12.dp)
+                    shape = RoundedCornerShape(14.dp)
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.Refresh,
-                        contentDescription = null,
-                        modifier = Modifier.size(24.dp)
-                    )
+                    Icon(Icons.Default.Refresh, contentDescription = null)
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = "REPEAT",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold
+                        "REPEAT",
+                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
                     )
                 }
 
-                LaunchedEffect(isRepeatPressed) {
-                    if (isRepeatPressed) {
-                        kotlinx.coroutines.delay(100)
-                        isRepeatPressed = false
-                    }
-                }
-
-                // Next button with scale animation
-                var isNextPressed by remember { mutableStateOf(false) }
-                val nextScale by animateFloatAsState(
-                    targetValue = if (isNextPressed) 0.9f else 1f,
-                    animationSpec = spring(
-                        dampingRatio = Spring.DampingRatioMediumBouncy,
-                        stiffness = Spring.StiffnessHigh
-                    ),
-                    label = "next_scale"
+                // ➡️ Next (emergency emphasis)
+                AnimatedButton(
+                    icon = Icons.AutoMirrored.Filled.ArrowForward,
+                    tint = MaterialTheme.colorScheme.onError,
+                    backgroundColor = MaterialTheme.colorScheme.error,
+                    onClick = onNext
                 )
-
-                Button(
-                    onClick = {
-                        isNextPressed = true
-                        Timber.d("Next button clicked")
-                        onNext()
-                    },
-                    modifier = Modifier
-                        .size(56.dp)
-                        .scale(nextScale),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.error,
-                        contentColor = MaterialTheme.colorScheme.onError
-                    ),
-                    shape = RoundedCornerShape(12.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowForward,
-                        contentDescription = "Next step",
-                        modifier = Modifier.size(28.dp)
-                    )
-                }
-
-                LaunchedEffect(isNextPressed) {
-                    if (isNextPressed) {
-                        kotlinx.coroutines.delay(100)
-                        isNextPressed = false
-                    }
-                }
             }
 
-            Spacer(modifier = Modifier.height(12.dp))
-
-            // Status bar with voice indicator and micro-hints
+            // 🔊 Voice Status Bar
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Voice status indicator
-                Row(
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
                     Box(
                         modifier = Modifier
                             .size(10.dp)
                             .scale(if (isListening) voicePulse else 1f)
                             .clip(CircleShape)
                             .background(
-                                if (isListening) {
-                                    MaterialTheme.colorScheme.primary.copy(alpha = voiceAlpha)
-                                } else {
+                                if (isListening)
+                                    MaterialTheme.colorScheme.primary.copy(alpha = glowAlpha)
+                                else
                                     MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
-                                }
                             )
                     )
-
-                    Spacer(modifier = Modifier.width(8.dp))
-
-                    Icon(
-                        imageVector = if (isListening) Icons.Default.Mic else Icons.Default.MicOff,
-                        contentDescription = null,
-                        tint = if (isListening) {
-                            MaterialTheme.colorScheme.primary
-                        } else {
-                            MaterialTheme.colorScheme.outline
-                        },
-                        modifier = Modifier.size(16.dp)
-                    )
-
-                    Spacer(modifier = Modifier.width(4.dp))
-
+                    Spacer(Modifier.width(8.dp))
                     Text(
-                        text = if (isListening) "Voice Active" else "Voice Inactive",
+                        text = if (isListening) "Listening..." else "Voice Inactive",
                         style = MaterialTheme.typography.labelSmall,
-                        color = if (isListening) {
+                        color = if (isListening)
                             MaterialTheme.colorScheme.primary
-                        } else {
-                            MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
-                        }
+                        else
+                            MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
                     )
                 }
 
-                // Quick reference hint
-                Text(
-                    text = "👆 Tap • 👈👉 Swipe • 🎤 Speak",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
-                    textAlign = TextAlign.End
-                )
             }
+        }
+    }
+}
+
+@Composable
+private fun AnimatedButton(
+    icon: ImageVector,
+    tint: Color,
+    backgroundColor: Color,
+    borderColor: Color = Color.Transparent,
+    onClick: () -> Unit
+) {
+    var pressed by remember { mutableStateOf(false) }
+    val scale by animateFloatAsState(
+        targetValue = if (pressed) 0.9f else 1f,
+        animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy),
+        label = "button_scale"
+    )
+
+    OutlinedIconButton(
+        onClick = {
+            pressed = true
+            onClick()
+        },
+        modifier = Modifier
+            .size(56.dp)
+            .scale(scale),
+        colors = IconButtonDefaults.outlinedIconButtonColors(
+            containerColor = backgroundColor,
+            contentColor = tint
+        ),
+        border = BorderStroke(1.dp, borderColor)
+    ) {
+        Icon(icon, contentDescription = null, modifier = Modifier.size(24.dp))
+    }
+
+    LaunchedEffect(pressed) {
+        if (pressed) {
+            kotlinx.coroutines.delay(100)
+            pressed = false
         }
     }
 }
