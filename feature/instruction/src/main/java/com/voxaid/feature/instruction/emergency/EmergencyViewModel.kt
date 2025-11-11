@@ -556,7 +556,15 @@ class EmergencyViewModel @Inject constructor(
             ttsManager.speak(message)
         }
 
-        Timber.i("Heimlich path selected: $path")
+        // Navigate to appropriate first step based on path
+        val firstStep = if (path == "self") {
+            "self_intro"
+        } else {
+            "help_call_911"
+        }
+
+        stepEngine?.goToStep(firstStep)
+        Timber.i("Heimlich path selected: $path, navigating to $firstStep")
     }
 
     // 🔧 NEW: Check if current step is a decision point
@@ -578,18 +586,17 @@ class EmergencyViewModel @Inject constructor(
             return
         }
 
-        // Loop back to thrust step
+        // Loop back to thrust step based on path
         val loopBackStep = if (_heimlichPath.value == "self") {
             "self_thrust"
         } else {
             "help_lock_arms"
         }
 
-        // Navigate to loop-back step
-        goToStepById(loopBackStep)
-
+        stepEngine?.goToStep(loopBackStep)
         Timber.d("Loop iteration $loopCount - returning to $loopBackStep")
     }
+
 
     // 🔧 NEW: Handle successful clearing
     fun onChokingCleared() {
@@ -597,7 +604,12 @@ class EmergencyViewModel @Inject constructor(
         _showSuccessDialog.value = true
 
         if (ttsEnabled.value) {
-            ttsManager.speak("Good job! The obstruction has been cleared. Seek medical attention.")
+            val message = if (_heimlichPath.value == "self") {
+                "Good job! The obstruction has been cleared. Seek medical attention."
+            } else {
+                "Good job! The patient is breathing normally. Seek medical attention for them."
+            }
+            ttsManager.speak(message)
         }
 
         Timber.i("Heimlich successful - obstruction cleared")
@@ -617,9 +629,10 @@ class EmergencyViewModel @Inject constructor(
 
         val currentStep = _currentStep.value
 
-        // 🔧 NEW: Check if we're at a Heimlich decision point
+        // Check if we're at a Heimlich decision point (popup)
         if (currentStep != null && emergencyId == "emergency_heimlich") {
-            if (isDecisionPoint(currentStep.stepId)) {
+            if (currentStep is EmergencyStep.Popup) {
+                // Don't auto-advance on popups - wait for user input
                 _showLoopDialog.value = true
                 return
             }
