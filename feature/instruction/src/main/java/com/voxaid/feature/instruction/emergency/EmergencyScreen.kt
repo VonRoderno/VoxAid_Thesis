@@ -3,7 +3,10 @@ package com.voxaid.feature.instruction.emergency
 import android.content.Intent
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
@@ -19,6 +22,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.core.net.toUri
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.voxaid.core.content.model.EmergencyStep
@@ -28,19 +32,17 @@ import com.voxaid.core.design.components.VoxAidTopBar
 import com.voxaid.core.design.util.AnimationConfig
 import com.voxaid.feature.instruction.emergency.components.*
 import timber.log.Timber
-import androidx.core.net.toUri
-import com.voxaid.feature.instruction.components.MetronomeWithTone
 
 /**
- * Emergency Mode instruction screen with progress tracking and completion feedback.
+ * Emergency Mode instruction screen with swipe navigation and progress tracking.
  *
- * New Features (Phase 2):
- * - Horizontal step progress indicator
- * - Completion tracking with visual feedback
- * - Enhanced accessibility (TalkBack announcements)
- * - Smooth step transition animations
- * - Quick reference command hints
+ * Phase: Swipe Navigation
+ * - Added HorizontalPager for swipe-based step navigation
+ * - Conditional swipe enable/disable based on step type
+ * - Synchronized swipe with voice commands and button navigation
+ * - Page indicators for visual feedback
  */
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun EmergencyScreen(
     onBackClick: () -> Unit,
@@ -48,6 +50,8 @@ fun EmergencyScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val currentStep by viewModel.currentStep.collectAsStateWithLifecycle()
+    val stepSequence by viewModel.stepSequence.collectAsStateWithLifecycle()
+    val currentStepIndex by viewModel.currentStepIndex.collectAsStateWithLifecycle()
     val elapsedTime by viewModel.elapsedTime.collectAsStateWithLifecycle()
     val beatCount by viewModel.beatCount.collectAsStateWithLifecycle()
     val showPopup by viewModel.showPopup.collectAsStateWithLifecycle()
@@ -71,6 +75,26 @@ fun EmergencyScreen(
 
     val context = LocalContext.current
 
+    // Pager state - controlled by step sequence
+    val pagerState = rememberPagerState(
+        initialPage = currentStepIndex,
+        pageCount = { stepSequence.size }
+    )
+
+    // Sync pager with step index changes from voice/buttons
+    LaunchedEffect(currentStepIndex) {
+        if (pagerState.currentPage != currentStepIndex && currentStepIndex < stepSequence.size) {
+            pagerState.animateScrollToPage(currentStepIndex)
+        }
+    }
+
+    // Notify ViewModel when user swipes to new page
+    LaunchedEffect(pagerState.currentPage) {
+        if (pagerState.currentPage != currentStepIndex && !pagerState.isScrollInProgress) {
+            viewModel.onPageSwiped(pagerState.currentPage)
+        }
+    }
+
     LaunchedEffect(audioState.asrReady) {
         if (audioState.asrReady) {
             Timber.d("🎤 ASR ready, starting listening")
@@ -84,12 +108,13 @@ fun EmergencyScreen(
         }
     }
 
+    // ... [All dialog handlers remain the same] ...
     if (showPathSelection) {
         HeimlichPathSelectionDialog(
             onSelfSelected = { viewModel.selectHeimlichPath("self") },
             onHelpingSelected = { viewModel.selectHeimlichPath("helping") }
         )
-        return // Don't show other content until path selected
+        return
     }
 
     if (showLoopDialog) {
@@ -109,7 +134,7 @@ fun EmergencyScreen(
             }
         )
     }
-    // Handle 911 dialog
+
     if (show911Dialog) {
         Call911Dialog(
             onConfirm = {
@@ -124,7 +149,6 @@ fun EmergencyScreen(
         )
     }
 
-    // Handle standard popups
     showPopup?.let { popup ->
         EmergencyPopupDialog(
             title = popup.title,
@@ -137,7 +161,6 @@ fun EmergencyScreen(
         )
     }
 
-    // CPR Timer Dialogs
     if (showRescuerDialog) {
         RescuerSwitchDialog(
             onAlone = { viewModel.onAlone() },
@@ -177,7 +200,6 @@ fun EmergencyScreen(
                         isMicActive = audioState.isListening && audioState.micPermissionGranted,
                         show911Button = true,
                         on911Click = { viewModel.show911Dialog() },
-                        // 🔧 NEW: TTS toggle in emergency mode
                         showTtsToggle = true,
                         ttsEnabled = ttsEnabled,
                         onTtsToggle = { viewModel.toggleTts() }
@@ -211,21 +233,44 @@ fun EmergencyScreen(
                 is EmergencyUiState.Success -> {
                     Box(modifier = Modifier.fillMaxSize()) {
                         Column(modifier = Modifier.fillMaxSize()) {
-                            // Main content
+                            // Main content with swipe navigation
                             Box(
                                 modifier = Modifier
                                     .weight(1f)
                                     .fillMaxWidth()
                             ) {
-                                currentStep?.let { step ->
-                                    EmergencyStepContent(
-                                        step = step,
-                                        elapsedTime = elapsedTime,
-                                        beatCount = beatCount,
-                                        voiceHint = voiceHint,
-                                        modifier = Modifier.fillMaxSize()
-                                    )
+                                if (stepSequence.isNotEmpty()) {
+                                    HorizontalPager(
+                                        state = pagerState,
+                                        modifier = Modifier.fillMaxSize(),
+                                        // Disable swipe for voice-triggered steps
+                                        userScrollEnabled = currentStep?.let {
+                                            !viewModel.shouldDisableSwipe(it)
+                                        } ?: false
+                                    ) { page ->
+                                        val step = stepSequence.getOrNull(page)
+                                        step?.let {
+                                            EmergencyStepContent(
+                                                step = it,
+                                                elapsedTime = elapsedTime,
+                                                beatCount = beatCount,
+                                                voiceHint = voiceHint,
+                                                modifier = Modifier.fillMaxSize()
+                                            )
+                                        }
+                                    }
                                 }
+                            }
+
+                            // Page indicators
+                            if (stepSequence.size > 1 && currentStep !is EmergencyStep.Terminal) {
+                                PageIndicators(
+                                    currentPage = currentStepIndex,
+                                    totalPages = stepSequence.size,
+                                    modifier = Modifier
+                                        .align(Alignment.CenterHorizontally)
+                                        .padding(vertical = 8.dp)
+                                )
                             }
 
                             // Metronome
@@ -238,19 +283,11 @@ fun EmergencyScreen(
                                 )
                             }
 
-//                            // Controls
-//                            val showNextButton = when (currentStep) {
-//                                is EmergencyStep.Instruction, is EmergencyStep.Timed, is EmergencyStep.Loop -> true
-//                                else -> false
-//                            }
-//                            val showBackButton = currentStep !is EmergencyStep.Terminal
-
+                            // Controls
                             EmergencyControls(
                                 onBack = { viewModel.previousStep() },
                                 onRepeat = { viewModel.repeatStep() },
                                 onNext = { viewModel.nextStep() },
-//                                showNext = showNextButton,
-//                                showBack = showBackButton,
                                 voiceHint = voiceHint,
                                 isListening = audioState.isListening,
                                 modifier = Modifier.fillMaxWidth()
@@ -314,7 +351,46 @@ fun EmergencyScreen(
     }
 }
 
+/**
+ * Page indicators showing current position in step sequence.
+ */
+@Composable
+private fun PageIndicators(
+    currentPage: Int,
+    totalPages: Int,
+    modifier: Modifier = Modifier
+) {
+    Row(
+        modifier = modifier,
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        repeat(totalPages.coerceAtMost(10)) { index ->
+            val isActive = index == currentPage
 
+            Box(
+                modifier = Modifier
+                    .size(if (isActive) 10.dp else 6.dp)
+                    .clip(CircleShape)
+                    .background(
+                        if (isActive) {
+                            MaterialTheme.colorScheme.error
+                        } else {
+                            MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
+                        }
+                    )
+            )
+        }
+
+        if (totalPages > 10) {
+            Text(
+                text = "${currentPage + 1}/$totalPages",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+    }
+}
 
 @Composable
 private fun EmergencyStepContent(
@@ -397,61 +473,8 @@ private fun EmergencyStepContent(
             ),
             elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
         ) {
-//            Text(
-//                text = step.description,
-//                style = MaterialTheme.typography.headlineSmall,
-//                color = MaterialTheme.colorScheme.onSurface,
-//                textAlign = TextAlign.Center,
-//                lineHeight = MaterialTheme.typography.headlineSmall.lineHeight.times(1.4f),
-//                modifier = Modifier.padding(20.dp)
-//            )
+            // Content removed to save space - uses same pattern as original
         }
-
-//        if (step is EmergencyStep.Timed) {
-//            Spacer(modifier = Modifier.height(24.dp))
-//
-//            Card(
-//                modifier = Modifier.fillMaxWidth(),
-//                colors = CardDefaults.cardColors(
-//                    containerColor = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.3f)
-//                )
-//            ) {
-//                Column(
-//                    modifier = Modifier
-//                        .fillMaxWidth()
-//                        .padding(20.dp),
-//                    horizontalAlignment = Alignment.CenterHorizontally
-//                ) {
-//                    if (step.countBeats && step.targetBeats != null) {
-//                        Text(
-//                            text = "$beatCount",
-//                            style = MaterialTheme.typography.displayLarge,
-//                            fontWeight = FontWeight.Bold,
-//                            color = MaterialTheme.colorScheme.error
-//                        )
-//                        Text(
-//                            text = "of ${step.targetBeats} compressions",
-//                            style = MaterialTheme.typography.titleMedium,
-//                            color = MaterialTheme.colorScheme.onSurface
-//                        )
-//                    } else {
-//                        val minutes = elapsedTime / 60
-//                        val seconds = elapsedTime % 60
-//                        Text(
-//                            text = String.format("%d:%02d", minutes, seconds),
-//                            style = MaterialTheme.typography.displayLarge,
-//                            fontWeight = FontWeight.Bold,
-//                            color = MaterialTheme.colorScheme.error
-//                        )
-//                        Text(
-//                            text = "elapsed",
-//                            style = MaterialTheme.typography.titleMedium,
-//                            color = MaterialTheme.colorScheme.onSurface
-//                        )
-//                    }
-//                }
-//            }
-//        }
 
         when (step) {
             is EmergencyStep.Instruction -> step.criticalWarning
@@ -521,7 +544,6 @@ private fun VoicePromptCard(
                 .padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // 🔹 Header row
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Center
@@ -548,7 +570,6 @@ private fun VoicePromptCard(
                 )
             }
 
-            // 🔸 Main prompt area
             when (step) {
                 is EmergencyStep.VoiceTrigger -> {
                     Spacer(modifier = Modifier.height(10.dp))
@@ -577,7 +598,6 @@ private fun VoicePromptCard(
                     Spacer(modifier = Modifier.height(12.dp))
                     val pulse = remember { Animatable(1f) }
 
-                    // gentle pulse animation on YES/NO
                     LaunchedEffect(Unit) {
                         while (true) {
                             pulse.animateTo(1.1f, tween(600))
@@ -617,7 +637,6 @@ private fun VoicePromptCard(
                 }
             }
 
-            // 💡 Voice hint
             voiceHint?.let {
                 Spacer(modifier = Modifier.height(10.dp))
                 HorizontalDivider(
@@ -634,10 +653,9 @@ private fun VoicePromptCard(
                 )
             }
 
-            // ℹ️ Footer hint
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = "👆 Swipe or use buttons if voice isn’t working",
+                text = "👆 Tap • 👈👉 Swipe • 🎤 Speak",
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
                 textAlign = TextAlign.Center

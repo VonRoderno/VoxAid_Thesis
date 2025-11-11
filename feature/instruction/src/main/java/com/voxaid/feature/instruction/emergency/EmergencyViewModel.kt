@@ -39,6 +39,13 @@ class EmergencyViewModel @Inject constructor(
     private val _currentStep = MutableStateFlow<EmergencyStep?>(null)
     val currentStep: StateFlow<EmergencyStep?> = _currentStep.asStateFlow()
 
+    // NEW: Step sequence for pager
+    private val _stepSequence = MutableStateFlow<List<EmergencyStep>>(emptyList())
+    val stepSequence: StateFlow<List<EmergencyStep>> = _stepSequence.asStateFlow()
+
+    private val _currentStepIndex = MutableStateFlow(0)
+    val currentStepIndex: StateFlow<Int> = _currentStepIndex.asStateFlow()
+
     // CPR Timer State
     private val _compressionCycleTime = MutableStateFlow(0)
     val compressionCycleTime: StateFlow<Int> = _compressionCycleTime.asStateFlow()
@@ -58,7 +65,7 @@ class EmergencyViewModel @Inject constructor(
     private val _showExhaustionMessage = MutableStateFlow(false)
     val showExhaustionMessage: StateFlow<Boolean> = _showExhaustionMessage.asStateFlow()
 
-    private val _heimlichPath = MutableStateFlow<String?>(null) // "self" or "helping"
+    private val _heimlichPath = MutableStateFlow<String?>(null)
     val heimlichPath: StateFlow<String?> = _heimlichPath.asStateFlow()
 
     private val _showPathSelection = MutableStateFlow(false)
@@ -70,14 +77,11 @@ class EmergencyViewModel @Inject constructor(
     private val _showSuccessDialog = MutableStateFlow(false)
     val showSuccessDialog: StateFlow<Boolean> = _showSuccessDialog.asStateFlow()
 
-    // Track loop iterations to prevent infinite loops
     private var loopCount = 0
     private val MAX_LOOPS = 10
 
-
     private var compressionTimerJob: Job? = null
 
-    // Existing State
     private val _elapsedTime = MutableStateFlow(0)
     val elapsedTime: StateFlow<Int> = _elapsedTime.asStateFlow()
 
@@ -101,7 +105,6 @@ class EmergencyViewModel @Inject constructor(
 
     val audioState = audioSessionManager.audioState
 
-    // 🔧 NEW: Expose TTS enabled state
     val ttsEnabled = preferencesManager.ttsEnabled
         .stateIn(viewModelScope, SharingStarted.Eagerly, true)
 
@@ -142,6 +145,7 @@ class EmergencyViewModel @Inject constructor(
                         playSwitchWarningCue()
                         Timber.d("CPR Timer: 1:40 warning triggered")
                     }
+
                     120 -> {
                         pauseCompressions()
                         stopCompressionCycleTimer()
@@ -250,13 +254,46 @@ class EmergencyViewModel @Inject constructor(
         stopListening()
     }
 
+    /**
+     * NEW: Called when user swipes to a new page.
+     * Updates step engine to match pager position.
+     */
+    fun onPageSwiped(newIndex: Int) {
+        if (newIndex == currentStepIndex.value) return
+
+        val sequence = _stepSequence.value
+        if (newIndex !in sequence.indices) {
+            Timber.w("Invalid swipe index: $newIndex")
+            return
+        }
+
+        val targetStep = sequence[newIndex]
+
+        // Navigate step engine to the swiped step
+        stepEngine?.goToStepBySequenceIndex(newIndex)
+
+        Timber.d("User swiped to index $newIndex: ${targetStep.title}")
+    }
+
+    /**
+     * NEW: Determines if swipe should be disabled for current step.
+     * Disables swipe for steps requiring voice input.
+     */
+    fun shouldDisableSwipe(step: EmergencyStep): Boolean {
+        return when (step) {
+            is EmergencyStep.VoiceTrigger -> true  // Require voice input
+            is EmergencyStep.Popup -> true          // Require explicit choice
+            is EmergencyStep.Terminal -> true       // End of flow
+            else -> false                            // Allow swipe
+        }
+    }
+
     private fun initializeAudio() {
         viewModelScope.launch {
             audioSessionManager.initialize()
         }
     }
 
-    // 🔧 UPDATED: Only pause ASR if TTS is enabled
     private fun observeTtsState() {
         viewModelScope.launch {
             combine(
@@ -301,7 +338,6 @@ class EmergencyViewModel @Inject constructor(
     private var lastTtsCompletionTime = 0L
     private val TTS_COOLDOWN_MS = 500L
 
-    // 🔧 UPDATED: Skip cooldown if TTS disabled
     private fun handleVoiceIntent(intent: VoiceIntent) {
         Timber.d("Emergency voice intent received: $intent")
 
@@ -336,6 +372,7 @@ class EmergencyViewModel @Inject constructor(
                     Timber.d("Ignored NextStep - waiting for voice trigger")
                 }
             }
+
             is VoiceIntent.PreviousStep -> previousStep()
             is VoiceIntent.RepeatStep -> repeatStep()
 
@@ -383,6 +420,7 @@ class EmergencyViewModel @Inject constructor(
                     else -> Timber.d("Ignored command during rescuer dialog: $intent")
                 }
             }
+
             _showContinueDialog.value -> {
                 when (intent) {
                     is VoiceIntent.Yes, is VoiceIntent.Continue -> onContinueCompressions()
@@ -390,6 +428,7 @@ class EmergencyViewModel @Inject constructor(
                     else -> Timber.d("Ignored command during continue dialog: $intent")
                 }
             }
+
             else -> {
                 Timber.d("Dialog active but no specific handler - ignored: $intent")
             }
@@ -427,6 +466,7 @@ class EmergencyViewModel @Inject constructor(
                     step.expectedKeywords.joinToString(" or ").uppercase()
                 }
             }
+
             is EmergencyStep.Popup -> "YES or NO"
             else -> "NEXT or REPEAT"
         }
@@ -474,9 +514,13 @@ class EmergencyViewModel @Inject constructor(
         protocol = emergencyProtocol
         stepEngine = EmergencyStepEngine(emergencyProtocol)
 
+        // Build step sequence for pager
+        updateStepSequence()
+
         viewModelScope.launch {
             stepEngine!!.currentStep.collect { step ->
                 _currentStep.value = step
+                updateCurrentStepIndex(step)
                 handleStepTransition(step)
             }
         }
@@ -497,18 +541,45 @@ class EmergencyViewModel @Inject constructor(
         Timber.i("Emergency step engine initialized")
     }
 
+    /**
+     * NEW: Builds ordered sequence of steps for pager.
+     */
+    private fun updateStepSequence() {
+        val protocol = protocol ?: return
+        val sequence = stepEngine?.buildStepSequence() ?: emptyList()
+
+        _stepSequence.value = sequence
+        Timber.d("Built step sequence with ${sequence.size} steps")
+    }
+
+    /**
+     * NEW: Updates current index based on step ID.
+     */
+    private fun updateCurrentStepIndex(step: EmergencyStep?) {
+        if (step == null) return
+
+        val sequence = _stepSequence.value
+        val index = sequence.indexOfFirst { it.stepId == step.stepId }
+
+        if (index >= 0) {
+            _currentStepIndex.value = index
+        }
+    }
+
     private fun handleStepTransition(step: EmergencyStep?) {
         step ?: return
 
         if ((step.stepId == "chest_compressions" ||
-                    (step is EmergencyStep.Timed && step.title.contains("Compression", ignoreCase = true)))
+                    (step is EmergencyStep.Timed && step.title.contains(
+                        "Compression",
+                        ignoreCase = true
+                    )))
             && compressionTimerJob == null
         ) {
             startCompressionCycleTimer()
             Timber.d("Entered compression step - timer started")
         }
 
-        // 🔧 UPDATED: Only speak if TTS enabled
         if (ttsEnabled.value) {
             ttsManager.speak(step.voicePrompt)
             lastTtsCompletionTime = System.currentTimeMillis()
@@ -523,24 +594,28 @@ class EmergencyViewModel @Inject constructor(
                     noLabel = "No"
                 )
             }
+
             is EmergencyStep.Timed -> {
                 startTimer(step.durationSeconds)
                 if (step.showMetronome) {
                     _isMetronomeActive.value = true
                 }
             }
+
             is EmergencyStep.Terminal -> {
                 stopTimer()
                 stopCompressionCycleTimer()
                 _isMetronomeActive.value = false
                 Timber.i("Reached terminal step: ${step.outcomeType}")
             }
+
             else -> {
                 stopTimer()
                 _isMetronomeActive.value = false
             }
         }
     }
+
 
     fun selectHeimlichPath(path: String) {
         _heimlichPath.value = path
