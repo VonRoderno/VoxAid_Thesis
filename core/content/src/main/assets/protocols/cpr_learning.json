@@ -79,7 +79,7 @@
       "step_number": 8,
       "title": "Check Surroundings",
       "description": "Survey the scene again and check if it is safe to perform CPR",
-      "voice_prompt": "Survey the scene one more time. Make sure it is safe to perform C P R.",
+      "voice_prompt": "Survey the scene one more time. Make sure it is safe to perform CPR.",
       "animation_resource": "survey_gif.gif",
       "duration_seconds": 5,
       "critical_warning": "Tip: Your safety comes first - don't perform CPR in dangerous locations"

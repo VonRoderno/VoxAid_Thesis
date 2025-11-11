@@ -1,87 +1,82 @@
 {
-  "id": "bandaging_narrow_cravat",
-  "name": "Narrow Cravat",
-  "description": "Folding technique to create a narrow cravat bandage from triangular cloth",
+  "id": "bandaging_arm_sling",
+  "name": "Arm Sling",
+  "description": "Triangular bandage arm sling for arm injuries",
   "category": "bleeding",
-  "estimated_duration_minutes": 4,
-  "warning": "Used for various bandaging applications. Ensure cloth is clean before use.",
+  "estimated_duration_minutes": 6,
+  "warning": "For arm and shoulder injuries. Do not move arm if fracture is suspected.",
   "emergency_notes": [
-    "Narrow cravat can be used for head injuries, limb bandaging, and securing splints",
-    "Always check that folds are even and tight"
+    "Support the injured arm before applying sling",
+    "Check circulation every 10 minutes",
+    "Seek medical attention for fractures"
   ],
   "steps": [
     {
       "step_number": 1,
-      "title": "Preparing the Triangular Bandage",
-      "description": "You'll need a triangular bandage. If unavailable, use a clean piece of cloth, clothing, or a large handkerchief. Cut or fold it into a triangle shape.",
-      "voice_prompt": "Prepare a triangular bandage or a clean cloth folded into a triangle.",
+      "title": "Requirements",
+      "description": "You need a triangular bandage for this. You can also use cloth, clothes, or handkerchief as long as it is clean. Just cut or fold the alternative just like the triangular bandage.",
+      "voice_prompt": "Prepare a triangular bandage or a clean cloth alternative.",
       "animation_resource": "alternative.gif",
       "duration_seconds": 10
     },
     {
       "step_number": 2,
-      "title": "Step 1 — Hold the Bandage",
-      "description": "Hold the apex (tip) in one hand and an edge in the other.",
-      "voice_prompt": "Hold the apex, or tip, in one hand and one edge in the other.",
-      "animation_resource": "narrowcravat_1.gif",
+      "title": "Secure the Injured Arm",
+      "description": "You need to ask the patient or other people to support the injured arm.",
+      "voice_prompt": "Ask the patient or someone nearby to support the injured arm.",
+      "animation_resource": "armsling_1.gif",
       "duration_seconds": 8
     },
     {
       "step_number": 3,
-      "title": "Step 2 — First Fold",
-      "description": "Fold the bandage in half, bringing the apex toward the base.",
-      "voice_prompt": "Fold the bandage in half, bringing the apex toward the base.",
-      "animation_resource": "narrowcravat_2.gif",
-      "duration_seconds": 8
+      "title": "Slide Under the Arm",
+      "description": "Slide one edge of the bandage under the arm up until to the patient's shoulder.",
+      "voice_prompt": "Slide one edge of the bandage under the injured arm up to the shoulder.",
+      "animation_resource": "armsling_2.gif",
+      "duration_seconds": 10
     },
     {
       "step_number": 4,
-      "title": "Step 3 — Second Fold",
-      "description": "Fold it in half again to make it narrower.",
-      "voice_prompt": "Fold it in half again to make it narrower.",
-      "animation_resource": "narrowcravat_3.gif",
-      "duration_seconds": 8
+      "title": "Cross the Bandage",
+      "description": "Put the other side of the bandage to the other shoulder.",
+      "voice_prompt": "Bring the other side of the bandage over to the opposite shoulder.",
+      "animation_resource": "armsling_3.gif",
+      "duration_seconds": 10
     },
     {
       "step_number": 5,
-      "title": "Step 4 — Adjust the Ends",
-      "description": "Hold the apex and one edge again to keep the folds aligned.",
-      "voice_prompt": "Hold the apex and edge again to keep the folds aligned.",
-      "animation_resource": "narrowcravat_4.gif",
-      "duration_seconds": 8
+      "title": "Secure the Arm",
+      "description": "Don't pull the bandage quickly. Do it slowly while asking the patient if they are comfortable.",
+      "voice_prompt": "Pull the bandage slowly and gently. Ask the patient if they are comfortable.",
+      "animation_resource": "armsling_5.gif",
+      "duration_seconds": 12,
+      "critical_warning": "Tip: Always move slowly and check with the patient to avoid causing additional pain"
     },
     {
       "step_number": 6,
-      "title": "Step 5 — Tuck and Pull",
-      "description": "Insert your hand inside the fold, grab the corner, and pull it out to neaten the shape.",
-      "voice_prompt": "Insert your hand inside, grab the corner, and pull it out to neaten the fold.",
-      "animation_resource": "narrowcravat_5.gif",
-      "duration_seconds": 10
-    },
-    {
-      "step_number": 7,
-      "title": "Step 6 — Fold Once More",
-      "description": "Fold the bandage in half again to make it even narrower.",
-      "voice_prompt": "Fold the bandage in half once more to make it even narrower.",
-      "animation_resource": "narrowcravat_6.gif",
+      "title": "Let Go of the Support",
+      "description": "After securing the injured arm, you may now ask them to let go of the support.",
+      "voice_prompt": "Once the arm is secure, ask them to release the support.",
+      "animation_resource": "armsling_4.gif",
       "duration_seconds": 8
     },
     {
-      "step_number": 8,
-      "title": "Step 7 — Final Tuck",
-      "description": "Insert your hand inside, grab the corner, and pull it out again to flatten and tighten.",
-      "voice_prompt": "Insert your hand inside again, grab the corner, and pull to flatten.",
-      "animation_resource": "narrowcravat_7.gif",
-      "duration_seconds": 10
+      "step_number": 7,
+      "title": "Tie the Bandage",
+      "description": "With the use of square knots, the bandage is secured and easy to untangle.",
+      "voice_prompt": "Tie the bandage using a square knot. It is secure yet easy to untangle.",
+      "animation_resource": "armsling_6.gif",
+      "duration_seconds": 12,
+      "critical_warning": "Tip: To perform a square knot, hold the ends with each hand, put the right end over the left and tie, then put the left end over the right and tie"
     },
     {
-      "step_number": 9,
-      "title": "Step 8 — Final Fold",
-      "description": "Make one last fold in half to complete the narrow cravat.",
-      "voice_prompt": "Make one final fold in half to complete the narrow cravat.",
-      "animation_resource": "narrowcravat_8.gif",
-      "duration_seconds": 8,
-      "critical_warning": "Tip: The narrow cravat should be tight and even for effective use in bandaging"
+      "step_number": 8,
+      "title": "Clean Up",
+      "description": "To make it more secure, fold the edges and adjust other edges by folding and tucking it in.",
+      "voice_prompt": "Fold and tuck in the edges to secure the sling.",
+      "animation_resource": "armsling_7.gif",
+      "duration_seconds": 10,
+      "critical_warning": "Tip: Check circulation in the fingertips every 10 minutes"
     }
   ]
 }

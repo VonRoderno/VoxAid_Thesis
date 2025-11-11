@@ -15,6 +15,7 @@ import com.voxaid.core.content.model.Protocol
 import com.voxaid.core.content.model.Step
 import com.voxaid.core.content.repository.ProtocolRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
@@ -242,8 +243,9 @@ class InstructionViewModel @Inject constructor(
     }
 
     private fun loadProtocol() {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             _uiState.value = InstructionUiState.Loading
+
 
             protocolRepository.getProtocol(variantId)
                 .onSuccess { loadedProtocol ->
@@ -420,6 +422,7 @@ class InstructionViewModel @Inject constructor(
 
             if (!newValue) {
                 ttsManager.stop()
+                audioSessionManager.resumeAfterTts()
                 Timber.i("🔇 TTS disabled by user")
             } else {
                 Timber.i("🔊 TTS enabled by user")

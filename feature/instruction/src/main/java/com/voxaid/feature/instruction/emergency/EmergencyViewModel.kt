@@ -261,23 +261,17 @@ class EmergencyViewModel @Inject constructor(
 
     private fun observeTtsState() {
         viewModelScope.launch {
-            combine(
-                ttsManager.isSpeaking,
-                ttsEnabled
-            ) { isSpeaking, enabled ->
-                Pair(isSpeaking, enabled)
-            }.collect { (isSpeaking, enabled) ->
-                if (enabled) {
-                    if (isSpeaking) {
-                        audioSessionManager.pauseForTts()
-                        Timber.d("🔇 ASR paused - TTS is speaking")
-                    } else {
-                        delay(500)
-                        audioSessionManager.resumeAfterTts()
-                        Timber.d("🔊 ASR resumed - TTS finished")
-                    }
+            ttsManager.isSpeaking.collect { isSpeaking ->
+                if (isSpeaking) {
+                    // TTS started speaking → pause ASR
+                    audioSessionManager.pauseForTts()
+                    Timber.d("🔇 ASR paused - TTS started")
                 } else {
-                    Timber.d("🎤 TTS disabled - ASR stays active")
+                    // TTS stopped speaking → resume ASR if TTS is enabled
+                    if (ttsEnabled.value) {
+                        audioSessionManager.resumeAfterTts()
+                        Timber.d("🔊 ASR resumed - TTS stopped")
+                    }
                 }
             }
         }
@@ -392,6 +386,14 @@ class EmergencyViewModel @Inject constructor(
                     is VoiceIntent.Yes, is VoiceIntent.Continue -> onContinueCompressions()
                     is VoiceIntent.No, is VoiceIntent.Stop -> onStopExhausted()
                     else -> Timber.d("Ignored command during continue dialog: $intent")
+                }
+            }
+
+            _showPopup.value != null -> {  // ✅ Added handler
+                when (intent) {
+                    is VoiceIntent.Yes -> handlePopupYes()
+                    is VoiceIntent.No -> handlePopupNo()
+                    else -> Timber.d("Ignored command during popup: $intent")
                 }
             }
 
@@ -755,6 +757,7 @@ class EmergencyViewModel @Inject constructor(
 
             if (!newValue) {
                 ttsManager.stop()
+                audioSessionManager.resumeAfterTts()
                 Timber.i("🔇 TTS disabled by user (emergency mode)")
             } else {
                 Timber.i("🔊 TTS enabled by user (emergency mode)")
