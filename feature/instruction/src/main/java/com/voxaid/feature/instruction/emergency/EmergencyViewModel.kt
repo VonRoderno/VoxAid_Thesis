@@ -518,7 +518,14 @@ class EmergencyViewModel @Inject constructor(
             startCompressionCycleTimer()
             Timber.d("Entered compression step - timer started")
         }
-
+        if (step.title == "Call Emergency"){
+            _show911Dialog.value = true
+            Timber.w("Reached call emergency step - showing dialog")
+            }
+        if (step is EmergencyStep.Terminal){
+            _showTerminalMessage.value = true
+            Timber.w("Reached terminal step - showing terminal message")
+        }
         if (ttsEnabled.value) {
             ttsManager.speak(step.voicePrompt)
             lastTtsCompletionTime = System.currentTimeMillis()
@@ -725,6 +732,10 @@ class EmergencyViewModel @Inject constructor(
 
     fun dismissPopup() {
         _showPopup.value = null
+    }
+
+    fun dismissTerminalPopup() {
+        _showTerminalMessage.value = false
     }
 
     fun handleTimerPopupResponse(response: TimerPopupResponse) {

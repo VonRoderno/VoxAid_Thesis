@@ -52,7 +52,6 @@
       "voice_prompt": "Call nine one one immediately. Prepare to perform C P R.",
       "animation_resource": "call_emergency.gif",
       "duration_seconds": 10,
-      "critical_warning": "⚠️ CALL 911 BEFORE CONTINUING",
       "next_step_id": "hard_surface"
     },
 
@@ -82,10 +81,9 @@
       "step_type": "instruction",
       "title": "Use AED",
       "description": "Turn on AED and follow voice instructions.\n\nRemove clothing, attach pads, stand clear for analysis.",
-      "voice_prompt": "Turn on the A E D. Follow its voice instructions carefully.",
+      "voice_prompt": "Turn on the AED. Follow its voice instructions carefully.",
       "animation_resource": "aed_3.gif",
       "duration_seconds": 15,
-      "critical_warning": "Stand CLEAR when AED analyzes or shocks",
       "next_step_id": "position_body"
     },
 
@@ -110,7 +108,6 @@
       "metronome_bpm": 110,
       "count_beats": true,
       "target_beats": 30,
-      "critical_warning": "⚠️ Allow full chest recoil between compressions. Say NEXT after completing 30 compressions.",
       "next_step_id": "check_pulse"
     },
 
@@ -121,7 +118,6 @@
       "voice_prompt": "Check pulse and breathing. You have 10 seconds.",
       "animation_resource": "cpr_checkagain.gif",
       "duration_seconds": 10,
-      "critical_warning": "Do this check in under 10 seconds",
       "next_step_id": "tap_shout"
     },
 

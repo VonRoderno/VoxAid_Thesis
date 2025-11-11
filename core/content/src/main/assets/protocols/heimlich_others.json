@@ -18,7 +18,7 @@
       "voice_prompt": "Do NOT give water to a choking person. Ask if they are choking. Look for the universal choking sign.",
       "animation_resource": "heimlich_other_1.gif",
       "duration_seconds": 8,
-      "critical_warning": "⚠️ Water can make choking worse - never give water to someone who is choking"
+      "critical_warning": "Water can make choking worse - never give water to someone who is choking"
     },
     {
       "step_number": 2,
@@ -45,7 +45,7 @@
       "voice_prompt": "Perform quick, forceful inward and upward thrusts. Repeat until the object is expelled or person becomes unconscious.",
       "animation_resource": "heimlich_other_4.gif",
       "duration_seconds": 15,
-      "critical_warning": "⚠️ If person becomes unconscious, lay them down and immediately start CPR"
+      "critical_warning": "If person becomes unconscious, lay them down and immediately start CPR"
     }
   ]
 }

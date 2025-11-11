@@ -14,7 +14,7 @@
     {
       "step_number": 1,
       "title": "Triangular Bandage",
-      "description": "You need a triangular bandage for this. You can also use cloth, clothes, or handkerchief as long as it is clean. Just cut or fold the alternative just like the triangular bandage.",
+      "description": "\"You need a triangular bandage for this. You can also use cloth, clothes, or handkerchief as long as it is clean. Just cut or fold the alternative just like the triangular bandage. Refer to the Narrow Cravat protocol if not yet familiar.",
       "voice_prompt": "Prepare a triangular bandage or a clean cloth alternative.",
       "animation_resource": "alternative.gif",
       "duration_seconds": 10

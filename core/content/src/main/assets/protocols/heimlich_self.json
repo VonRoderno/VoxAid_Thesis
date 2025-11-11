@@ -18,7 +18,7 @@
       "voice_prompt": "Do NOT drink water. If you can, call nine one one for emergency.",
       "animation_resource": "heimlich_yself_1.gif",
       "duration_seconds": 8,
-      "critical_warning": "⚠️ Water can push the object deeper - do not drink"
+      "critical_warning": "Water can push the object deeper - do not drink"
     },
     {
       "step_number": 2,

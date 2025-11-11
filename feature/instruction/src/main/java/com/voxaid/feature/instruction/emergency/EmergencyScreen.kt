@@ -18,6 +18,7 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -26,6 +27,7 @@ import com.voxaid.core.content.model.EmergencyStep
 import com.voxaid.core.design.components.Call911Dialog
 import com.voxaid.core.design.components.GifImage
 import com.voxaid.core.design.components.VoxAidTopBar
+import com.voxaid.core.design.theme.VoxAidTheme
 import com.voxaid.core.design.util.AnimationConfig
 import com.voxaid.feature.instruction.components.MetronomeWithTone
 import com.voxaid.feature.instruction.emergency.components.*
@@ -48,6 +50,7 @@ import timber.log.Timber
 @Composable
 fun EmergencyScreen(
     onBackClick: () -> Unit,
+    onGoToMainMenu: () -> Unit,
     viewModel: EmergencyViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -64,7 +67,7 @@ fun EmergencyScreen(
     val heimlichPath by viewModel.heimlichPath.collectAsStateWithLifecycle()
     val showLoopDialog by viewModel.showLoopDialog.collectAsStateWithLifecycle()
     val showSuccessDialog by viewModel.showSuccessDialog.collectAsStateWithLifecycle()
-
+    val showTerminalMessage by viewModel.showTerminalMessage.collectAsStateWithLifecycle()
     // CPR Timer states
     val compressionCycleTime by viewModel.compressionCycleTime.collectAsStateWithLifecycle()
     val showSwitchWarning by viewModel.showSwitchWarning.collectAsStateWithLifecycle()
@@ -126,6 +129,17 @@ fun EmergencyScreen(
                 runCatching { context.startActivity(intent) }
             },
             onDismiss = { viewModel.dismiss911Dialog() }
+        )
+    }
+    if (showTerminalMessage) {
+        TerminalPopupDialog(
+            onButtonClick = {
+                viewModel.dismissTerminalPopup()
+                onGoToMainMenu()
+            },
+            onDismiss = {
+                viewModel.dismissTerminalPopup()
+            }
         )
     }
 
@@ -566,5 +580,16 @@ private fun VoicePromptCard(
                 textAlign = TextAlign.Center
             )
         }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun HeimlichPathSelectionDialogPreview() {
+    VoxAidTheme {
+        HeimlichPathSelectionDialog(
+            onSelfSelected = {},
+            onHelpingSelected = {}
+        )
     }
 }

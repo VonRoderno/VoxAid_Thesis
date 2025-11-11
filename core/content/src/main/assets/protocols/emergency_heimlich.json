@@ -37,10 +37,9 @@
       "step_type": "instruction",
       "title": "If You Can't Cough",
       "description": "Find a hard surface at belly height:\n• Chair back\n• Table edge\n• Kitchen countertop\n\nSwipe when you've found a surface.",
-      "voice_prompt": "Other alternatives are table, kitchen countertop, and other hard surfaces that are in the same height as your belly. Swipe if you found a hard surface.",
+      "voice_prompt": "Other alternatives are table, kitchen countertop, and other hard surfaces that are in the same height as your belly.",
       "animation_resource": "heimlich_yself_2.gif",
       "duration_seconds": 15,
-      "critical_warning": "Surface must be solid and at navel height",
       "next_step_id": "self_thrust"
     },
 
@@ -48,10 +47,9 @@
       "step_type": "instruction",
       "title": "Slam Your Belly",
       "description": "Thrust your belly against the surface as hard as you can.\n\n5 TIMES\n\nSwipe after completing 5 thrusts.",
-      "voice_prompt": "Slam your belly as hard as you can 5 times. Swipe after you slam your belly for 5 times.",
+      "voice_prompt": "Slam your belly as hard as you can for 5 times. Go to next step when done.",
       "animation_resource": "heimlich_yself_3.gif",
       "duration_seconds": 20,
-      "critical_warning": "⚠️ Use MAXIMUM force - your life depends on it",
       "next_step_id": "self_try_cough"
     },
 
@@ -82,7 +80,7 @@
       "title": "You Are Now Safe!",
       "description": "Good job! You successfully cleared the obstruction.\n\nSeek medical attention even though you're breathing normally.",
       "voice_prompt": "You are now safe! Good job!",
-      "animation_resource": "heimlich_yself_1.gif",
+      "animation_resource": "marked_safe.webp",
       "outcome_type": "success"
     },
 
@@ -93,7 +91,6 @@
       "voice_prompt": "Call emergency services immediately.",
       "animation_resource": "call_emergency.gif",
       "duration_seconds": 10,
-      "critical_warning": "⚠️ Call 911 before starting Heimlich",
       "next_step_id": "help_ask_cough"
     },
 
@@ -124,7 +121,6 @@
       "voice_prompt": "Quickly stand behind the person and follow the correct position.",
       "animation_resource": "heimlich_other_3.gif",
       "duration_seconds": 15,
-      "critical_warning": "Position fist above navel, below ribcage",
       "next_step_id": "help_thrust"
     },
 
@@ -135,7 +131,6 @@
       "voice_prompt": "Thrust the belly of the person choking repeatedly for five times.",
       "animation_resource": "heimlich_other_4.gif",
       "duration_seconds": 20,
-      "critical_warning": "⚠️ Use firm, quick upward thrusts",
       "next_step_id": "help_check_patient"
     },
 
@@ -156,7 +151,7 @@
       "title": "You Are Now Safe!",
       "description": "Good job! The patient is breathing normally.\n\nThe obstruction has been cleared.\n\nSeek medical attention for the patient.",
       "voice_prompt": "You are now safe. Good job!",
-      "animation_resource": "heimlich_other_1.gif",
+      "animation_resource": "marked_safe.webp",
       "outcome_type": "success"
     }
   }

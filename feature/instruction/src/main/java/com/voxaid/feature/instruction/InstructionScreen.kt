@@ -1,3 +1,5 @@
+// feature/instruction/src/main/java/com/voxaid/feature/instruction/InstructionScreen.kt
+
 package com.voxaid.feature.instruction
 
 import android.content.Intent
@@ -24,11 +26,12 @@ import com.voxaid.core.design.components.Call911Dialog
 import com.voxaid.core.design.components.VoxAidTopBar
 import com.voxaid.core.design.theme.VoxAidTheme
 import com.voxaid.feature.instruction.components.*
-import timber.log.Timber
+import com.voxaid.feature.instruction.emergency.components.FinalStepCompletionDialog
 
 @Composable
 fun InstructionScreen(
     onBackClick: () -> Unit,
+    onGotoMainMenu: () -> Unit,
     viewModel: InstructionViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -37,18 +40,19 @@ fun InstructionScreen(
     val isMetronomeActive by viewModel.isMetronomeActive.collectAsStateWithLifecycle()
     val show911Dialog by viewModel.show911Dialog.collectAsStateWithLifecycle()
     val isEmergencyMode = viewModel.isEmergencyMode
-
-    // 🔧 NEW: Track TTS enabled state
     val ttsEnabled by viewModel.ttsEnabled.collectAsStateWithLifecycle()
+
+    // 🆕 NEW: Observe final step dialog state
+    val showFinalStepDialog by viewModel.showFinalStepDialog.collectAsStateWithLifecycle()
 
     val context = LocalContext.current
 
     LaunchedEffect(audioState.asrReady) {
         if (audioState.asrReady) {
-            Timber.d("🎤 ASR ready, starting listening")
+            timber.log.Timber.d("🎤 ASR ready, starting listening")
             viewModel.startListening()
         } else {
-            Timber.d("⏳ Waiting for ASR to become ready...")
+            timber.log.Timber.d("⏳ Waiting for ASR to become ready...")
         }
     }
 
@@ -69,10 +73,26 @@ fun InstructionScreen(
                 try {
                     context.startActivity(intent)
                 } catch (e: Exception) {
-                    Timber.e(e, "Failed to launch dialer")
+                    timber.log.Timber.e(e, "Failed to launch dialer")
                 }
             },
             onDismiss = { viewModel.dismiss911Dialog() }
+        )
+    }
+
+    // 🆕 NEW: Show final step completion dialog
+    if (showFinalStepDialog && uiState is InstructionUiState.Success) {
+        val protocol = (uiState as InstructionUiState.Success).protocol
+        FinalStepCompletionDialog(
+            protocolName = protocol.name,
+            onReturnToMenu = {
+                viewModel.dismissFinalStepDialog()
+                viewModel.stopTts()
+                onGotoMainMenu()
+            },
+            onReviewSteps = {
+                viewModel.dismissFinalStepDialog()
+            }
         )
     }
 
@@ -90,7 +110,6 @@ fun InstructionScreen(
                         isMicActive = audioState.isListening && audioState.micPermissionGranted,
                         show911Button = true,
                         on911Click = { viewModel.show911Dialog() },
-                        // 🔧 NEW: TTS toggle
                         showTtsToggle = true,
                         ttsEnabled = ttsEnabled,
                         onTtsToggle = { viewModel.toggleTts() }
@@ -133,7 +152,6 @@ fun InstructionScreen(
                 is InstructionUiState.Success -> {
                     Column(modifier = Modifier.fillMaxSize()) {
 
-                        // 🔧 NEW: TTS Status Banner (only show if disabled)
                         if (!ttsEnabled) {
                             Card(
                                 modifier = Modifier
@@ -180,7 +198,7 @@ fun InstructionScreen(
                             onPreviousClick = { viewModel.previousStep() },
                             onNextClick = { viewModel.nextStep() },
                             onRepeatClick = { viewModel.repeatStep() },
-                            modifier = Modifier.fillMaxWidth()
+                            modifier = Modifier.fillMaxWidth(),
                         )
                     }
                 }
@@ -209,8 +227,6 @@ fun InstructionScreen(
         }
     }
 }
-
-// BorderedInfoBanner and other composables remain the same...
 
 @Composable
 fun BorderedInfoBanner(

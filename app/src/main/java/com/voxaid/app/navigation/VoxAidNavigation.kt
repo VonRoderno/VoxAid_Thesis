@@ -185,6 +185,9 @@ fun VoxAidNavHost(
             com.voxaid.feature.instruction.InstructionScreen(
                 onBackClick = {
                     navController.popBackStack()
+                },
+                onGotoMainMenu = {
+                    navController.navigate(VoxAidRoute.MainMenu.route)
                 }
             )
         }
@@ -213,6 +216,9 @@ fun VoxAidNavHost(
             com.voxaid.feature.instruction.emergency.EmergencyScreen(
                 onBackClick = {
                     navController.popBackStack()
+                },
+                onGoToMainMenu = {
+                    navController.navigate(VoxAidRoute.MainMenu.route)
                 }
             )
         }

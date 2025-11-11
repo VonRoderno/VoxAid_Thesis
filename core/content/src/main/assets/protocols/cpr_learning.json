@@ -60,7 +60,7 @@
     {
       "step_number": 6,
       "title": "If at least one (Breathing, Pulse, Consciousness) is present",
-      "description": "Remember to not perform CPR because it might be dangerous. Wait for the emergency patiently.",
+      "description": "Remember to not perform CPR because it might be dangerous. Wait for the emergency response patiently.",
       "voice_prompt": "If the person has breathing, pulse, or consciousness, do NOT perform C P R. Wait for emergency services.",
       "animation_resource": "dont_cpr.gif",
       "duration_seconds": 8,
@@ -199,7 +199,7 @@
       "voice_prompt": "If shock is advised, shout CLEAR and make sure no one is touching the patient. Press the shock button if required.",
       "animation_resource": "aed_4.gif",
       "duration_seconds": 10,
-      "critical_warning": "⚠️ STAND CLEAR - Never touch the patient during shock delivery"
+      "critical_warning": "STAND CLEAR - Never touch the patient during shock delivery"
     },
     {
       "step_number": 22,

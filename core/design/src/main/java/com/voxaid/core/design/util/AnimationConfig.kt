@@ -91,6 +91,9 @@ object AnimationConfig {
         val OTHER_3: Int? = R.raw.heimlich_other_3 // heimlich_other_3.gif
         @RawRes
         val OTHER_4: Int? = R.raw.heimlich_other_4 // heimlich_other_4.gif
+
+        @RawRes
+        val SUCCESS: Int? = R.raw.marked_safe // heimlich_yself_1.gif
     }
 
     /**
@@ -235,7 +238,7 @@ object AnimationConfig {
 
             //TODO - ADD NEW GIF MAPPINGS FOR THE BANDAGING OF HANDS HERE
 
-
+            "marked_safe.webp" -> Heimlich.SUCCESS
             else -> null
         }
     }

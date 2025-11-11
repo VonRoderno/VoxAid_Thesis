@@ -119,8 +119,7 @@ sealed class VoiceIntent {
                         normalized.contains("end metronome") -> StopMetronome
 
                 // Help and emergency
-                normalized.contains("help") ||
-                        normalized.contains("what") -> Help
+                normalized.contains("help")  -> Help
 
                 normalized.contains("call 911") ||
                         normalized.contains("call nine one one") ||

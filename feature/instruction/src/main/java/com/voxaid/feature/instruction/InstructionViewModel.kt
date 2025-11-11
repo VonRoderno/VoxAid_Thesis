@@ -47,7 +47,6 @@ class InstructionViewModel @Inject constructor(
 
     private var protocol: Protocol? = null
 
-    // 🔧 NEW: Expose TTS enabled state
     val ttsEnabled = preferencesManager.ttsEnabled
         .stateIn(viewModelScope, SharingStarted.Eagerly, true)
 
@@ -69,8 +68,17 @@ class InstructionViewModel @Inject constructor(
     private val _showEmergencyUnlockedDialog = MutableStateFlow(false)
     val showEmergencyUnlockedDialog: StateFlow<Boolean> = _showEmergencyUnlockedDialog.asStateFlow()
 
+    // 🆕 NEW: Show final step completion dialog
+    private val _showFinalStepDialog = MutableStateFlow(false)
+    val showFinalStepDialog: StateFlow<Boolean> = _showFinalStepDialog.asStateFlow()
+
     fun dismissEmergencyUnlockedDialog() {
         _showEmergencyUnlockedDialog.value = false
+    }
+
+    // 🆕 NEW: Dismiss final step dialog
+    fun dismissFinalStepDialog() {
+        _showFinalStepDialog.value = false
     }
 
     init {
@@ -88,7 +96,6 @@ class InstructionViewModel @Inject constructor(
         }
     }
 
-    // 🔧 UPDATED: Only pause ASR if TTS is enabled
     private fun observeTtsState() {
         viewModelScope.launch {
             combine(
@@ -97,7 +104,6 @@ class InstructionViewModel @Inject constructor(
             ) { isSpeaking, enabled ->
                 Pair(isSpeaking, enabled)
             }.collect { (isSpeaking, enabled) ->
-                // Only coordinate with ASR if TTS is actually enabled
                 if (enabled) {
                     if (isSpeaking) {
                         audioSessionManager.pauseForTts()
@@ -108,7 +114,6 @@ class InstructionViewModel @Inject constructor(
                         Timber.d("🔊 ASR resumed - TTS finished")
                     }
                 } else {
-                    // TTS disabled - ensure ASR is always active
                     Timber.d("🎤 TTS disabled - ASR stays active")
                 }
             }
@@ -136,7 +141,6 @@ class InstructionViewModel @Inject constructor(
     private val TTS_COOLDOWN_MS = 500L
 
     private fun handleVoiceIntent(intent: VoiceIntent) {
-        // 🔧 UPDATED: Skip cooldown check if TTS is disabled
         if (ttsEnabled.value) {
             val currentTime = System.currentTimeMillis()
             if (currentTime - lastTtsCompletionTime < TTS_COOLDOWN_MS) {
@@ -246,7 +250,6 @@ class InstructionViewModel @Inject constructor(
         viewModelScope.launch(Dispatchers.IO) {
             _uiState.value = InstructionUiState.Loading
 
-
             protocolRepository.getProtocol(variantId)
                 .onSuccess { loadedProtocol ->
                     protocol = loadedProtocol
@@ -255,7 +258,6 @@ class InstructionViewModel @Inject constructor(
                         currentStep = loadedProtocol.steps[0]
                     )
 
-                    // 🔧 UPDATED: Only speak if TTS enabled
                     if (ttsEnabled.value) {
                         speakStep(loadedProtocol.steps[0])
                     }
@@ -279,6 +281,16 @@ class InstructionViewModel @Inject constructor(
         val currentProtocol = protocol ?: return
         val nextIndex = _currentStepIndex.value + 1
 
+        // 🆕 MODIFIED: Check if at final step
+        if (nextIndex >= currentProtocol.steps.size) {
+            // Already at final step - show completion dialog
+            if (!isEmergencyMode) {
+                _showFinalStepDialog.value = true
+                Timber.d("Reached final step - showing completion dialog")
+            }
+            return
+        }
+
         if (nextIndex < currentProtocol.steps.size) {
             _currentStepIndex.value = nextIndex
             val nextStep = currentProtocol.steps[nextIndex]
@@ -288,7 +300,6 @@ class InstructionViewModel @Inject constructor(
                 currentStep = nextStep
             )
 
-            // 🔧 UPDATED: Only speak if TTS enabled
             if (ttsEnabled.value) {
                 speakStep(nextStep)
             }
@@ -299,6 +310,7 @@ class InstructionViewModel @Inject constructor(
                 }
             }
 
+            // 🆕 MODIFIED: Mark as completed when reaching final step
             if (!isEmergencyMode && nextIndex == currentProtocol.steps.size - 1) {
                 markProtocolAsCompleted()
             }
@@ -358,7 +370,6 @@ class InstructionViewModel @Inject constructor(
                 currentStep = prevStep
             )
 
-            // 🔧 UPDATED: Only speak if TTS enabled
             if (ttsEnabled.value) {
                 speakStep(prevStep)
             }
@@ -371,7 +382,6 @@ class InstructionViewModel @Inject constructor(
         val currentProtocol = protocol ?: return
         val currentStep = currentProtocol.steps.getOrNull(_currentStepIndex.value) ?: return
 
-        // 🔧 UPDATED: Only speak if TTS enabled
         if (ttsEnabled.value) {
             speakStep(currentStep)
         }
@@ -391,7 +401,6 @@ class InstructionViewModel @Inject constructor(
                 currentStep = step
             )
 
-            // 🔧 UPDATED: Only speak if TTS enabled
             if (ttsEnabled.value) {
                 speakStep(step)
             }
@@ -402,6 +411,7 @@ class InstructionViewModel @Inject constructor(
                 }
             }
 
+            // 🆕 MODIFIED: Mark as completed when reaching final step
             if (!isEmergencyMode && stepIndex == currentProtocol.steps.size - 1) {
                 markProtocolAsCompleted()
             }
@@ -414,7 +424,6 @@ class InstructionViewModel @Inject constructor(
         ttsManager.speak(step.voicePrompt)
     }
 
-    // 🔧 NEW: Toggle TTS on/off
     fun toggleTts() {
         viewModelScope.launch {
             val newValue = !ttsEnabled.value
@@ -426,7 +435,6 @@ class InstructionViewModel @Inject constructor(
                 Timber.i("🔇 TTS disabled by user")
             } else {
                 Timber.i("🔊 TTS enabled by user")
-                // Speak current step if enabled
                 val currentStep = protocol?.steps?.getOrNull(_currentStepIndex.value)
                 currentStep?.let { speakStep(it) }
             }

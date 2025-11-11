@@ -28,6 +28,7 @@ fun StepControls(
     onNextClick: () -> Unit,
     onRepeatClick: () -> Unit,
     modifier: Modifier = Modifier
+
 ) {
     val buttonHeight = if (isEmergencyMode) 64.dp else 56.dp
     val iconSize = if (isEmergencyMode) 32.dp else 24.dp
@@ -154,7 +155,7 @@ fun StepControls(
                 // Next button
                 Button(
                     onClick = onNextClick,
-                    enabled = currentStepIndex < totalSteps - 1,
+                    enabled = currentStepIndex <= totalSteps - 1,
                     modifier = Modifier
                         .weight(1f)
                         .height(buttonHeight)
